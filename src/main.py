@@ -13,39 +13,29 @@ def get_input():
     return user_input
 
 def parse_mod(user_input): 
-    print("mod count is " + user_input[0])
     MOD_COUNT = "mod_count"
     MODS = "mods"
-    progs = {
-        MOD_COUNT: int(user_input[0]), 
-        MODS: []
-    }
-    pending_list = user_input[1:]
+
+    progs = { MOD_COUNT: int(user_input[0]), MODS: [] }
+    list_to_process = user_input[1:]
+
     for _ in range(progs[MOD_COUNT]): 
-        mod, pending_list = mod_ls_to_dict(pending_list)
+        mod, list_to_process = mod_list_to_dict(list_to_process)
         progs[MODS].append(mod)
+
     return progs
 
 def process_mod_component(component, mod, cur): 
-
-    COUNT = "count"
-    LIST = "list"
     SYM = "sym"
     ADDR = "rel_addr"
-
-    COUNT = component + '_' + COUNT
-    LIST = component + '_' + LIST
+    COUNT = component + '_count'
+    LIST = component + '_list'
     
-    comp = {
-        COUNT: None,
-        LIST: []
-    }
-
-    comp[COUNT] = int(mod[cur])
+    comp = { COUNT: int(mod[cur]), LIST: [] }
     cur += 1
     
     while cur < len(mod):
-        if comp[COUNT] is not None and len(comp[LIST]) < comp[COUNT]: 
+        if len(comp[LIST]) < comp[COUNT]: 
             comp[LIST].append({
                 SYM: mod[cur],
                 ADDR: mod[cur + 1]
@@ -57,21 +47,16 @@ def process_mod_component(component, mod, cur):
 
     return comp, cur
 
-def mod_ls_to_dict(md_in): 
+def mod_list_to_dict(md_in): 
     '''
     Input: a string containing a module
     Return: the remaining string after a module is parsed and removed from str.  
     '''
-
     DEF = "def"
     USE = "use"
     PROG = "prog"
 
-    md_out = {
-        DEF: {}, 
-        USE: {}, 
-        PROG: {}
-    }
+    md_out = { DEF: {}, USE: {}, PROG: {} }
 
     cur = 0
 
