@@ -12,22 +12,22 @@ def get_input():
     user_input = " ".join(user_input).split()
     return user_input
 
-def parse_mod(user_input): 
+def process_user_input(u_in): 
     MOD_COUNT = "mod_count"
     MODS = "mods"
 
-    progs = { MOD_COUNT: int(user_input[0]), MODS: [] }
-    list_to_process = user_input[1:]
+    progs = { MOD_COUNT: int(u_in[0]), MODS: [] }
+    list_to_process = u_in[1:]
 
     for _ in range(progs[MOD_COUNT]): 
-        mod, list_to_process = mod_list_to_dict(list_to_process)
+        mod, list_to_process = parse_mod(list_to_process)
         progs[MODS].append(mod)
 
     return progs
 
 def process_mod_component(component, mod, cur): 
-    SYM = "sym"
-    ADDR = "rel_addr"
+    TYPE = "type"
+    WORD = "word"
     COUNT = component + '_count'
     LIST = component + '_list'
     
@@ -36,18 +36,20 @@ def process_mod_component(component, mod, cur):
     
     while cur < len(mod):
         if len(comp[LIST]) < comp[COUNT]: 
-            comp[LIST].append({
-                SYM: mod[cur],
-                ADDR: mod[cur + 1]
-            })
-            cur += 2
-            continue
+            if component == "def" or component == "use": 
+                comp[LIST].append({ mod[cur]: mod[cur + 1] })
+                cur += 2
+                continue
+            else: 
+                comp[LIST].append({ TYPE: mod[cur], WORD: mod[cur + 1] })
+                cur += 2
+                continue
         else: 
             break
 
     return comp, cur
 
-def mod_list_to_dict(md_in): 
+def parse_mod(md_in): 
     '''
     Input: a string containing a module
     Return: the remaining string after a module is parsed and removed from str.  
@@ -66,9 +68,13 @@ def mod_list_to_dict(md_in):
 
     return (md_out, md_in[cur:])
 
+def get_sym_table(mods): 
+    # for item in 
+    pass
+
 def main():
-    u_in = get_input()
-    processed_mod = parse_mod(u_in)
+    user_input = get_input()
+    processed_mod = process_user_input(user_input)
     print("progs is " + str(processed_mod))
 
 if __name__ == "__main__":
