@@ -1,0 +1,125 @@
+{
+  'def': {'def_count': 0, 'def_list': []
+  }, 
+  'use': {'use_count': 1, 'use_list': [
+      {'sym': 'z', 'rel_addr': '1'
+      }
+    ]
+  },
+  'prog': {
+    'prog_count': 2, 
+    'prog_list': [
+      {'sym': 'R', 'rel_addr': '5001'
+      },
+      {'sym': 'E', 'rel_addr': '4777'
+      }
+    ]
+  }
+}
+
+{
+  'def': {'def_count': 1, 'def_list': [
+      {'sym': 'z', 'rel_addr': '2'
+      }
+    ]
+  }, 
+  'use': {'use_count': 1, 'use_list': [
+      {'sym': 'xy', 'rel_addr': '2'
+      }
+    ]
+  }, 
+  'prog': {
+    'prog_count': 3, 
+    'prog_list': [
+      {'sym': 'A', 'rel_addr': '8000'
+      },
+      {'sym': 'E', 'rel_addr': '1777'
+      },
+      {'sym': 'E', 'rel_addr': '2001'
+      }
+    ]
+  }
+}
+
+
+
+
+
+{
+  'mod_count': 4, 'mods': [
+    {'def': {'def_count': 1, 'def_list': [
+          {'sym': 'xy', 'rel_addr': '2'
+          }
+        ]
+      }, 'use': {'use_count': 1, 'use_list': [
+          {'sym': 'z', 'rel_addr': '4'
+          }
+        ]
+      }, 'prog': {'prog_count': 5, 'prog_list': [
+          {'sym': 'R', 'rel_addr': '1004'
+          },
+          {'sym': 'I', 'rel_addr': '5678'
+          },
+          {'sym': 'E', 'rel_addr': '2777'
+          },
+          {'sym': 'R', 'rel_addr': '8002'
+          },
+          {'sym': 'E', 'rel_addr': '7002'
+          }
+        ]
+      }
+    },
+    {'def': {'def_count': 0, 'def_list': []
+      }, 'use': {'use_count': 1, 'use_list': [
+          {'sym': 'z', 'rel_addr': '3'
+          }
+        ]
+      }, 'prog': {'prog_count': 6, 'prog_list': [
+          {'sym': 'R', 'rel_addr': '8001'
+          },
+          {'sym': 'E', 'rel_addr': '1777'
+          },
+          {'sym': 'E', 'rel_addr': '1001'
+          },
+          {'sym': 'E', 'rel_addr': '3002'
+          },
+          {'sym': 'R', 'rel_addr': '1002'
+          },
+          {'sym': 'A', 'rel_addr': '1010'
+          }
+        ]
+      }
+    },
+    {'def': {'def_count': 0, 'def_list': []
+      }, 'use': {'use_count': 1, 'use_list': [
+          {'sym': 'z', 'rel_addr': '1'
+          }
+        ]
+      }, 'prog': {'prog_count': 2, 'prog_list': [
+          {'sym': 'R', 'rel_addr': '5001'
+          },
+          {'sym': 'E', 'rel_addr': '4777'
+          }
+        ]
+      }
+    },
+    {'def': {'def_count': 1, 'def_list': [
+          {'sym': 'z', 'rel_addr': '2'
+          }
+        ]
+      }, 'use': {'use_count': 1, 'use_list': [
+          {'sym': 'xy', 'rel_addr': '2'
+          }
+        ]
+      }, 'prog': {'prog_count': 3, 'prog_list': [
+          {'sym': 'A', 'rel_addr': '8000'
+          },
+          {'sym': 'E', 'rel_addr': '1777'
+          },
+          {'sym': 'E', 'rel_addr': '2001'
+          }
+        ]
+      }
+    }
+  ]
+}

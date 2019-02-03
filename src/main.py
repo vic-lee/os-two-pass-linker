@@ -13,14 +13,11 @@ def get_input():
         except EOFError:
             break
         user_input.append(line)
-    user_input = " ".join(user_input)
+    user_input = " ".join(user_input).split()
     return user_input
 
-def get_mod_count(s):
-    for _, c in enumerate(s):
-        if c.isdigit():
-            return c    
-    return None
+def process_mod_count(s):
+    pass
 
 def parse_mod(user_input): 
     '''
@@ -35,15 +32,20 @@ def parse_mod(user_input):
         - get the next number as prog_count
         - repeat prog pair storing process for prog_count times 
     '''
+    print("mod count is " + user_input[0])
+    MOD_COUNT = "mod_count"
+    MODS = "mods"
     progs = {
-        "mod_count": get_mod_count(user_input), 
-        "mods": []
+        MOD_COUNT: int(user_input[0]), 
+        MODS: []
     }
-    # MOD_COUNT = progs["mod_count"]
-    # print("Mod count is: " + MOD_COUNT if MOD_COUNT.isdigit() else "N/A")
-    pass
+    pending_ls = user_input[1:]
+    for _ in range(progs["mod_count"]): 
+        mod, pending_ls = mod_ls_to_dict(pending_ls)
+        progs["mods"].append(mod)
+    return progs
 
-def mod_str_to_dict(str): 
+def mod_ls_to_dict(md_in): 
     '''
     Input: a string containing a module
     Return: the remaining string after a module is parsed and removed from str.  
@@ -58,8 +60,10 @@ def mod_str_to_dict(str):
     PROG = "prog"
     PROG_COUNT = "prog_count"
     PROG_LIST = "prog_list"
+    SYM = "sym"
+    ADDR = "rel_addr"
 
-    mod_dict = {
+    md_out = {
         DEF: {
             DEF_COUNT: None,
             DEF_LIST: []
@@ -73,20 +77,51 @@ def mod_str_to_dict(str):
             PROG_LIST: []
         }
     }
-
-    for _, c in enumerate(str):
-        if mod_dict[DEF][DEF_COUNT] is None:
-            if c.isdigit(): 
-                mod_dict[DEF][DEF_COUNT] = c
+    cur = 0
+    while cur < len(md_in):
+        if md_out[DEF][DEF_COUNT] is None: 
+            md_out[DEF][DEF_COUNT] = int(md_in[cur])
+            cur += 1
+            continue 
+        elif md_out[DEF][DEF_COUNT] is not None and len(md_out[DEF][DEF_LIST]) < md_out[DEF][DEF_COUNT]: 
+            md_out[DEF][DEF_LIST].append({
+                SYM: md_in[cur],
+                ADDR: md_in[cur + 1]
+            })
+            cur += 2
             continue
-        # elif len(mod_dict[DEF][DEF_LIST]) < mod_dict[DEF][DEF_COUNT]:
-            
-
+        elif md_out[USE][USE_COUNT] is None:
+            md_out[USE][USE_COUNT] = int(md_in[cur])
+            cur += 1
+            continue 
+        elif md_out[USE][USE_COUNT] is not None and len(md_out[USE][USE_LIST]) < md_out[USE][USE_COUNT]:
+            md_out[USE][USE_LIST].append({
+                SYM: md_in[cur],
+                ADDR: md_in[cur + 1]
+            })
+            cur += 2
+            continue
+        elif md_out[PROG][PROG_COUNT] is None:
+            md_out[PROG][PROG_COUNT] = int(md_in[cur])
+            cur += 1
+            continue
+        elif md_out[PROG][PROG_COUNT] is not None and len(md_out[PROG][PROG_LIST]) < md_out[PROG][PROG_COUNT]: 
+            md_out[PROG][PROG_LIST].append({
+                SYM: md_in[cur],
+                ADDR: md_in[cur + 1]
+            })
+            cur += 2
+            continue
+        else: 
+            break
+    # print(md_out)
+    return (md_out, md_in[cur:])
     
 
 def main():
-    input_set = get_input()
-    print(input_set)
+    u_in = get_input()
+    processed_mod = parse_mod(u_in)
+    print("progs is " + str(processed_mod))
 
 if __name__ == "__main__":
     main()
