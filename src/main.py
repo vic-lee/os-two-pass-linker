@@ -1,4 +1,5 @@
 import os, sys, re
+from collections import ChainMap
 
 def get_input():
     print("Paste your input, then enter Ctrl-D to exit input mode:")
@@ -30,18 +31,21 @@ def process_mod_component(component, mod, cur):
     WORD = "word"
     COUNT = component + '_count'
     LIST = component + '_list'
-    
-    comp = { COUNT: int(mod[cur]), LIST: [] }
+    comp = {}
+    if component == "def" or component == "use": 
+        comp = { COUNT: int(mod[cur]), LIST: {} }
+    else: 
+        comp = { COUNT: int(mod[cur]), LIST: [] }
     cur += 1
     
     while cur < len(mod):
         if len(comp[LIST]) < comp[COUNT]: 
             if component == "def" or component == "use": 
-                comp[LIST].append({ mod[cur]: mod[cur + 1] })
+                comp[LIST][mod[cur]] = int(mod[cur + 1])
                 cur += 2
                 continue
             else: 
-                comp[LIST].append({ TYPE: mod[cur], WORD: mod[cur + 1] })
+                comp[LIST].append({ TYPE: mod[cur], WORD: int(mod[cur + 1]) })
                 cur += 2
                 continue
         else: 
@@ -68,14 +72,22 @@ def parse_mod(md_in):
 
     return (md_out, md_in[cur:])
 
-def get_sym_table(mods): 
-    # for item in 
-    pass
+def get_sym_table(mods):
+    sym_table = {}
+    base_accum = 0
+    for mod in mods["mods"]:
+        def_dict = mod["def"]["def_list"]
+        for sym in def_dict:
+            def_dict[sym] += base_accum
+        sym_table.update(def_dict)
+        base_accum += mod["prog"]["prog_count"]
+    return sym_table
 
 def main():
     user_input = get_input()
     processed_mod = process_user_input(user_input)
     print("progs is " + str(processed_mod))
+    sym_table = get_sym_table(processed_mod)
 
 if __name__ == "__main__":
     main()

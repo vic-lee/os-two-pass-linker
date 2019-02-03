@@ -240,3 +240,69 @@
     }
   ]
 }
+
+
+{
+  'mod_count': 4, 
+  'mods': [
+    {
+      'def': {
+        'def_count': 1, 
+        'def_list': {'xy': '2'}
+      }, 
+      'use': {
+        'use_count': 2, 
+        'use_list': {'xy': '4', 'z': '2'}
+      }, 
+      'prog': {'prog_count': 5, 'prog_list': [
+          {'type': 'R', 'word': '1004'
+          },
+          {'type': 'I', 'word': '5678'
+          },
+          {'type': 'E', 'word': '2777'
+          },
+          {'type': 'R', 'word': '8002'
+          },
+          {'type': 'E', 'word': '7777'
+          }
+        ]
+      }
+    },
+    {'def': {'def_count': 0, 'def_list': {}
+      }, 'use': {'use_count': 1, 'use_list': {'z': '3'
+        }
+      }, 'prog': {'prog_count': 6, 'prog_list': [
+          {'type': 'R', 'word': '8001'
+          },
+          {'type': 'E', 'word': '1777'
+          },
+          {'type': 'E', 'word': '1001'
+          },
+          {'type': 'E', 'word': '3002'
+          },
+          {'type': 'R', 'word': '1002'
+          },
+          {'type': 'A', 'word': '1010'
+          }
+        ]
+      }
+    },
+    {'def': {'def_count': 0, 'def_list': {}
+      }, 'use': {'use_count': 1, 'use_list': {'z': '1'
+        }
+      }, 'prog': {'prog_count': 2, 'prog_list': [
+          {'type': 'R', 'word': '5001'
+          },
+          {'type': 'E', 'word': '4777'
+          }
+        ]
+      }
+    },
+    {'def': {'def_count': 1, 'def_list': {'z': '2'
+        }
+      }, 'use': {'use_count': 1, 'use_list': {'xy': '2'
+        }
+      }, 'prog': {'prog_count': 3, 'prog_list': [
+          {'type': 'A', 'word': '8000'
+          },
+          {'type': 'E', 'word':
