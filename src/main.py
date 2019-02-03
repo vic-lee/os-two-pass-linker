@@ -1,14 +1,18 @@
 import os
+import sys
+
 
 def main():
-    script_dir = os.path.dirname(__file__)
-    rel_path = "../reqs/input-output/input-1"
-    abs_path = os.path.join(script_dir, rel_path)
-    with open(abs_path, "rb") as f:
-        byte = f.read(1)
-        while byte:
-            byte = f.read(1)
-            print(byte)
+    print("Paste your input, then enter Ctrl-D to complete:")
+    contents = []
+    while True:
+        try:
+            line = input()
+        except EOFError:
+            break
+        contents.append(line)
+    contents = " ".join(contents)
+    print(contents)
 
 if __name__ == "__main__":
     main()
