@@ -45,14 +45,18 @@
 
 
 
-{
-  'mod_count': 4, 'mods': [
+
+
+
+progs is {'mod_count': 4, 'mods': [
     {'def': {'def_count': 1, 'def_list': [
           {'sym': 'xy', 'rel_addr': '2'
           }
         ]
-      }, 'use': {'use_count': 1, 'use_list': [
-          {'sym': 'z', 'rel_addr': '4'
+      }, 'use': {'use_count': 2, 'use_list': [
+          {'sym': 'xy', 'rel_addr': '4'
+          },
+          {'sym': 'z', 'rel_addr': '2'
           }
         ]
       }, 'prog': {'prog_count': 5, 'prog_list': [
@@ -64,7 +68,7 @@
           },
           {'sym': 'R', 'rel_addr': '8002'
           },
-          {'sym': 'E', 'rel_addr': '7002'
+          {'sym': 'E', 'rel_addr': '7777'
           }
         ]
       }
