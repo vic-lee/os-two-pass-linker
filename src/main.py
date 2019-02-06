@@ -37,23 +37,23 @@ def process_user_input(u_in):
 
     return progs
 
-def parse_mod(md_in, base): 
+def parse_mod(mod_in, base): 
     '''
     Input: a string containing a module
     Return: the remaining string after a module is parsed and removed from str.  
     '''
 
-    md_out = { DEF: {}, USE: {}, PROG: {} }
+    mod_out = { DEF: {}, USE: {}, PROG: {} }
 
     cur = 0
 
-    md_out[DEF], cur = process_mod_component(DEF, md_in, cur)
-    md_out[USE], cur = process_mod_component(USE, md_in, cur)
-    md_out[PROG], cur = process_mod_component(PROG, md_in, cur, base)
+    mod_out[DEF], cur = process_mod_component(DEF, mod_in, cur)
+    mod_out[USE], cur = process_mod_component(USE, mod_in, cur)
+    mod_out[PROG], cur = process_mod_component(PROG, mod_in, cur, base)
 
-    base += md_out[PROG]['prog_count']
+    base += mod_out[PROG]['prog_count']
 
-    return (md_out, md_in[cur:], base)
+    return (mod_out, mod_in[cur:], base)
 
 def process_mod_component(component, mod, cur, base=0): 
     '''
