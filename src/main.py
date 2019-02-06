@@ -37,32 +37,6 @@ def process_user_input(u_in):
 
     return progs
 
-def process_mod_component(component, mod, cur, base=0): 
-
-    COUNT = component + '_count'
-    LIST = component + '_list'
-    comp = {}
-    if component == DEF or component == USE: 
-        comp = { COUNT: int(mod[cur]), LIST: {} }
-    else: 
-        comp = { COUNT: int(mod[cur]), BASE: base, LIST: [] }
-    cur += 1
-    
-    while cur < len(mod):
-        if len(comp[LIST]) < comp[COUNT]: 
-            if component == DEF or component == USE: 
-                comp[LIST][mod[cur]] = int(mod[cur + 1])
-                cur += 2
-                continue
-            else: 
-                comp[LIST].append({ TYPE: mod[cur], WORD: int(mod[cur + 1]) })
-                cur += 2
-                continue
-        else: 
-            break
-
-    return comp, cur
-
 def parse_mod(md_in, base): 
     '''
     Input: a string containing a module
@@ -80,6 +54,42 @@ def parse_mod(md_in, base):
     base += md_out[PROG]['prog_count']
 
     return (md_out, md_in[cur:], base)
+
+def process_mod_component(component, mod, cur, base=0): 
+    '''
+    This function processes any of a module's 3 components: 
+    1) definition list; 2) use list; and 3) program text. 
+    Input: 
+        component:  component name, either DEF, USE, or PROG
+        mod:        the current module in process
+        cur:        current cursor location in module traversal
+    Output: 
+        comp_ret:   component returned, after processing
+        cur:        cursor location after processing
+    '''
+    COUNT = component + '_count'
+    LIST = component + '_list'
+    comp_ret = {}
+    if component == DEF or component == USE: 
+        comp_ret = { COUNT: int(mod[cur]), LIST: {} }
+    else: 
+        comp_ret = { COUNT: int(mod[cur]), BASE: base, LIST: [] }
+    cur += 1
+    
+    while cur < len(mod):
+        if len(comp_ret[LIST]) < comp_ret[COUNT]: 
+            if component == DEF or component == USE: 
+                comp_ret[LIST][mod[cur]] = int(mod[cur + 1])
+                cur += 2
+                continue
+            else: 
+                comp_ret[LIST].append({ TYPE: mod[cur], WORD: int(mod[cur + 1]) })
+                cur += 2
+                continue
+        else: 
+            break
+
+    return comp_ret, cur
 
 def generate_sym_table(mods):
     sym_table = {}
