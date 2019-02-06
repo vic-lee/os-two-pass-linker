@@ -94,9 +94,6 @@ def process_external_addr(old_addr, new_addr):
     first_digit = int(str(old_addr)[0])
     return (first_digit * 1000 + new_addr)
 
-def resolve_external_addr(prog_list, addr, new_addr):
-    pass
-
 def resolve_addresses(mods, sym_table): 
     for mod in mods[MODS]:
         use_list = mod[USE]['use_list']
@@ -116,31 +113,9 @@ def resolve_addresses(mods, sym_table):
             '''Resolve relative addresses'''
             if progpair[TYPE] == 'R': 
                 progpair[WORD] += prog[BASE]
-        print_list(prog_list)
-        print('\n')
+        # print_list(prog_list)
+        # print('\n')
     return mods
-
-# def resolve_addresses(mods, sym_table):
-#     for mod in mods[MODS]: 
-#         used = mod[USE]["use_list"]
-#         prog = mod[PROG]
-#         prog_list = prog["prog_list"]
-#         for used_sym, used_addr in used.items():
-#             '''TODO: 
-#             1) handle if this addr is not E; 
-#             2) handle if list is shorter than used_addr
-#             3) Handle if sym table does not contain this used sym
-#             '''
-#             print(used_sym)
-#             old_addr = prog_list[used_addr][WORD]
-#             new_addr = sym_table[used_sym]
-#             prog_list = resolve_external_addr(prog_list, old_addr, new_addr)
-#         for pair in prog_list: 
-#             if pair[TYPE] == "R":
-#                 pair[WORD] += prog[BASE]
-#         print(prog)
-#         print('\n')
-#     return mods
 
 def main():
     user_input = get_input()
