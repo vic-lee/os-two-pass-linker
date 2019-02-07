@@ -32,11 +32,11 @@ def uin_frist_pass(uin):
     mods = { MOD_COUNT: int(uin[0]), MODS: [] }
     buffer = uin[1:]
     base_accum = 0
-    sym_table = {}
+    syms = {}
     for _ in range(mods[MOD_COUNT]): 
-        mod, buffer, base_accum = parse_mod(buffer, base_accum, sym_table)
+        mod, buffer, base_accum, syms = parse_mod(buffer, base_accum, syms)
         mods[MODS].append(mod)
-    return mods
+    return mods, syms
 
 def parse_mod(mod_in, base, sym_table): 
     '''
@@ -46,15 +46,15 @@ def parse_mod(mod_in, base, sym_table):
     mod_out = { DEF: {}, USE: {}, PROG: {} }
     cur = 0
 
-    mod_out[DEF], cur, sym_table = p_mod_def(mod_in, cur, sym_table)
+    mod_out[DEF], cur, sym_table = p_mod_def(mod_in, cur, sym_table, base)
     mod_out[USE], cur = p_mod_use(mod_in, cur)
     mod_out[PROG], cur = p_mod_prog(mod_in, cur, base)
 
     base += mod_out[PROG]['prog_count']
 
-    return (mod_out, mod_in[cur:], base)
+    return mod_out, mod_in[cur:], base, sym_table
 
-def p_mod_def(mod, cur, sym_table): 
+def p_mod_def(mod, cur, sym_table, base): 
     COUNT = 'def_count'
     LIST = 'def_list'
     def_list = { COUNT: int(mod[cur]), LIST: {} }
@@ -70,7 +70,7 @@ def p_mod_def(mod, cur, sym_table):
                 sym_table[sym][SYM_ERR] = "Error: This variable is multiply defined; last value used."
             else:
                 sym_table[sym] = { SYM_VAL: None, SYM_ERR: None }
-            sym_table[sym][SYM_VAL] = sym_val
+            sym_table[sym][SYM_VAL] = int(sym_val) + base
             cur += 2
     return def_list, cur, sym_table
 
@@ -99,42 +99,6 @@ def p_mod_prog(mod, cur, base):
             prog_list[LIST].append({ TYPE: mod[cur], WORD: int(mod[cur + 1]) })
             cur += 2
     return prog_list, cur
-
-def process_mod_component(component, mod, cur, base=0, sym_table=None): 
-    '''
-    This function processes any of a module's 3 components: 
-    1) definition list; 2) use list; and 3) program text. 
-    Input: 
-        component:  component name, either DEF, USE, or PROG
-        mod:        the current module in process
-        cur:        current cursor location in module traversal
-    Output: 
-        comp_ret:   component returned, after processing
-        cur:        cursor location after processing
-    '''
-    COUNT = component + '_count'
-    LIST = component + '_list'
-    comp_ret = {}
-    if component == DEF or component == USE: 
-        comp_ret = { COUNT: int(mod[cur]), LIST: {} }
-    else: 
-        comp_ret = { COUNT: int(mod[cur]), BASE: base, LIST: [] }
-    cur += 1
-    
-    while cur < len(mod):
-        if len(comp_ret[LIST]) < comp_ret[COUNT]: 
-            if component == DEF or component == USE: 
-                comp_ret[LIST][mod[cur]] = int(mod[cur + 1])
-                cur += 2
-                continue
-            else: 
-                comp_ret[LIST].append({ TYPE: mod[cur], WORD: int(mod[cur + 1]) })
-                cur += 2
-                continue
-        else: 
-            break
-
-    return comp_ret, cur
 
 def process_external_addr(old_addr, new_addr):
     first_digit = int(str(old_addr)[0])
@@ -175,29 +139,16 @@ def resolve_addresses(mods, sym_table):
             print('Warning: ' + sym + ' was defined but never used.')
     return mods
 
-def generate_sym_table(mods):
-    sym_table = {}
-    multiple_def_syms = []
-    for mod in mods[MODS]:
-        def_dict = mod[DEF]["def_list"]
-        for sym in def_dict:
-            if sym in sym_table: 
-                multiple_def_syms.append(sym)
-            def_dict[sym] += mod[PROG][BASE]
-        sym_table.update(def_dict)
-    for elem in multiple_def_syms: 
-        print(elem + ' has multiple definitions. Last definition used.')
-    return sym_table
-
 def main():
     uin = get_input()
     print('\n')
-    mods = uin_frist_pass(uin)
-    # print("progs is " + str(processed_mod))
-    sym_table = generate_sym_table(mods)
+    mod, sym_table = uin_frist_pass(uin)
     print(sym_table)
-    print('\n')
-    mods = resolve_addresses(mods, sym_table)
+    # print("progs is " + str(processed_mod))
+    # sym_table = generate_sym_table(mods)
+    # print(sym_table)
+    # print('\n')
+    # mods = resolve_addresses(mods, sym_table)
     
 
 if __name__ == "__main__":
