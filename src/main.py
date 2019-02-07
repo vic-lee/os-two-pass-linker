@@ -26,25 +26,23 @@ def get_input():
     user_input = " ".join(user_input).split()
     return user_input
 
-def process_user_input(u_in): 
+def process_user_input(uin): 
 
-    progs = { MOD_COUNT: int(u_in[0]), MODS: [] }
-    list_to_process = u_in[1:]
+    mods = { MOD_COUNT: int(uin[0]), MODS: [] }
+    list_to_process = uin[1:]
     base_accum = 0
-    for _ in range(progs[MOD_COUNT]): 
+    for _ in range(mods[MOD_COUNT]): 
         mod, list_to_process, base_accum = parse_mod(list_to_process, base_accum)
-        progs[MODS].append(mod)
+        mods[MODS].append(mod)
 
-    return progs
+    return mods
 
 def parse_mod(mod_in, base): 
     '''
     Input: a string containing a module
     Return: the remaining string after a module is parsed and removed from str.  
     '''
-
     mod_out = { DEF: {}, USE: {}, PROG: {} }
-
     cur = 0
 
     mod_out[DEF], cur = process_mod_component(DEF, mod_in, cur)
@@ -91,15 +89,6 @@ def process_mod_component(component, mod, cur, base=0):
 
     return comp_ret, cur
 
-def generate_sym_table(mods):
-    sym_table = {}
-    for mod in mods[MODS]:
-        def_dict = mod[DEF]["def_list"]
-        for sym in def_dict:
-            def_dict[sym] += mod[PROG][BASE]
-        sym_table.update(def_dict)
-    return sym_table
-
 def process_external_addr(old_addr, new_addr):
     first_digit = int(str(old_addr)[0])
     return (first_digit * 1000 + new_addr)
@@ -123,19 +112,28 @@ def resolve_addresses(mods, sym_table):
             '''Resolve relative addresses'''
             if progpair[TYPE] == 'R': 
                 progpair[WORD] += prog[BASE]
-        # print_list(prog_list)
-        # print('\n')
+        print_list(prog_list)
+        print('\n')
     return mods
 
+def generate_sym_table(mods):
+    sym_table = {}
+    for mod in mods[MODS]:
+        def_dict = mod[DEF]["def_list"]
+        for sym in def_dict:
+            def_dict[sym] += mod[PROG][BASE]
+        sym_table.update(def_dict)
+    return sym_table
+
 def main():
-    user_input = get_input()
+    uin = get_input()
     print('\n')
-    processed_mod = process_user_input(user_input)
+    mods = process_user_input(uin)
     # print("progs is " + str(processed_mod))
-    sym_table = generate_sym_table(processed_mod)
+    sym_table = generate_sym_table(mods)
     print(sym_table)
     print('\n')
-    processed_mod = resolve_addresses(processed_mod, sym_table)
+    mods = resolve_addresses(mods, sym_table)
     
 
 if __name__ == "__main__":
