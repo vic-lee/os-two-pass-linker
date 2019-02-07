@@ -70,7 +70,7 @@ def p_mod_def(mod, cur, sym_table, base):
             if sym in sym_table: 
                 sym_table[sym][SYM_ERR] = "Error: This variable is multiply defined; last value used."
             else:
-                sym_table[sym] = { SYM_VAL: None, SYM_ERR: None }
+                sym_table[sym] = { SYM_VAL: None, SYM_ERR: "" }
             sym_table[sym][SYM_VAL] = int(sym_val) + base
             cur += 2
     return def_list, cur, sym_table
@@ -108,6 +108,21 @@ def p_mod_prog(mod, cur, base):
 def process_external_addr(old_addr, new_addr):
     first_digit = int(str(old_addr)[0])
     return (first_digit * 1000 + new_addr)
+
+def format_sym_table_out(syms):
+    syms_out = "Symbol Table\n"
+    for sym, sym_info in syms.items():
+        syms_out += "{}={} {}\n".format(sym, sym_info[SYM_VAL], sym_info[SYM_ERR])
+    return syms_out
+
+def format_mmap_out(mmap, sym_use_stat):
+    mmap_str = "Memory Map\n"
+    for index, item in enumerate(mmap):
+        mmap_str += "{}:\t{}\n".format(str(index), item)
+    for sym in sym_use_stat: 
+        if sym_use_stat[sym] == False: 
+            mmap_str += 'Warning: ' + sym + ' was defined but never used.'
+    return mmap_str
 
 def uin_sec_pass(mods, sym_table): 
     mmap = []
@@ -150,20 +165,10 @@ def uin_sec_pass(mods, sym_table):
     mmap_out = format_mmap_out(mmap, sym_use_stat)
     return mmap_out
 
-def format_mmap_out(mmap, sym_use_stat):
-    mmap_str = "Memory Map\n"
-    for index, item in enumerate(mmap):
-        mmap_str += "{}:\t{}\n".format(str(index), item)
-    for sym in sym_use_stat: 
-        if sym_use_stat[sym] == False: 
-            mmap_str += 'Warning: ' + sym + ' was defined but never used.'
-    return mmap_str
-
 def main():
     uin = get_input()
-    print('\n')
     mods, sym_table = uin_frist_pass(uin)
-    print(sym_table)
+    print('\n' + format_sym_table_out(sym_table))
     mmap_out = uin_sec_pass(mods, sym_table)
     print(mmap_out)
     
