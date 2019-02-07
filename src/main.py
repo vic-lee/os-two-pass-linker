@@ -157,8 +157,11 @@ def uin_sec_pass(mods, sym_table):
                 addr_cur = next_addr
 
         for progpair in prog_list: 
-            '''Resolve relative addresses'''
             if progpair[TYPE] == 'R': 
+                '''Resolve relative addresses'''
+                if int(str(progpair[WORD])[-3:]) >= len(prog_list):
+                    progpair[PROG_ERR] = 'Error: Type R address exceeds module size; 0 (relative) used'
+                    progpair[WORD] = int(str(progpair[WORD])[0]) * 1000
                 progpair[WORD] += prog[BASE]
             mmap.append(str(progpair[WORD]) + ' ' + progpair[PROG_ERR])
 
@@ -172,6 +175,5 @@ def main():
     mmap_out = uin_sec_pass(mods, sym_table)
     print(mmap_out)
     
-
 if __name__ == "__main__":
     main()
