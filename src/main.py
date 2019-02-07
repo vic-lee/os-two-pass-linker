@@ -147,8 +147,10 @@ def uin_sec_pass(mods, sym_table):
                 progpair[WORD] += prog[BASE]
             mmap.append(str(progpair[WORD]) + ' ' + progpair[PROG_ERR])
 
-        # print_list(prog_list)
-        # print('\n')
+    mmap_out = format_mmap_out(mmap, sym_use_stat)
+    return mmap_out
+
+def format_mmap_out(mmap, sym_use_stat):
     mmap_str = "Memory Map\n"
     for index, item in enumerate(mmap):
         mmap_str += "{}:\t{}\n".format(str(index), item)
