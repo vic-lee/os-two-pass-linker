@@ -119,6 +119,7 @@ def uin_sec_pass(mods, sym_table):
         use_list = mod[USE]['use_list']
         prog = mod[PROG]
         prog_list = prog['prog_list']
+
         for usym, uaddr in use_list.items():
             '''Resolve external addresses'''
             is_sym_used_not_defined = False
@@ -148,18 +149,21 @@ def uin_sec_pass(mods, sym_table):
 
         # print_list(prog_list)
         # print('\n')
-    print("\n".join(mmap))
+    mmap_str = "Memory Map\n"
+    for index, item in enumerate(mmap):
+        mmap_str += "{}:\t{}\n".format(str(index), item)
     for sym in sym_use_stat: 
         if sym_use_stat[sym] == False: 
-            print('Warning: ' + sym + ' was defined but never used.')
-    return mods
+            mmap_str += 'Warning: ' + sym + ' was defined but never used.'
+    return mmap_str
 
 def main():
     uin = get_input()
     print('\n')
     mods, sym_table = uin_frist_pass(uin)
     print(sym_table)
-    mods = uin_sec_pass(mods, sym_table)
+    mmap_out = uin_sec_pass(mods, sym_table)
+    print(mmap_out)
     
 
 if __name__ == "__main__":
