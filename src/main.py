@@ -9,6 +9,8 @@ MOD_COUNT = "mod_count"
 MODS = "mods"
 TYPE = "type"
 WORD = "word"
+SYM_VAL = "symbol_value"
+SYM_ERR = "symbol_error_msg"
 
 def print_list(l):
     for item in l: 
@@ -26,18 +28,17 @@ def get_input():
     user_input = " ".join(user_input).split()
     return user_input
 
-def process_user_input(uin): 
-
+def uin_frist_pass(uin): 
     mods = { MOD_COUNT: int(uin[0]), MODS: [] }
-    list_to_process = uin[1:]
+    buffer = uin[1:]
     base_accum = 0
+    sym_table = {}
     for _ in range(mods[MOD_COUNT]): 
-        mod, list_to_process, base_accum = parse_mod(list_to_process, base_accum)
+        mod, buffer, base_accum = parse_mod(buffer, base_accum, sym_table)
         mods[MODS].append(mod)
-
     return mods
 
-def parse_mod(mod_in, base): 
+def parse_mod(mod_in, base, sym_table): 
     '''
     Input: a string containing a module
     Return: the remaining string after a module is parsed and removed from str.  
@@ -45,7 +46,8 @@ def parse_mod(mod_in, base):
     mod_out = { DEF: {}, USE: {}, PROG: {} }
     cur = 0
 
-    mod_out[DEF], cur = process_mod_component(DEF, mod_in, cur)
+    # mod_out[DEF], cur = process_mod_component(DEF, mod_in, cur, sym_table)
+    mod_out[DEF], cur, sym_table = p_mod_def(mod_in, cur, sym_table)
     mod_out[USE], cur = process_mod_component(USE, mod_in, cur)
     mod_out[PROG], cur = process_mod_component(PROG, mod_in, cur, base)
 
@@ -53,7 +55,33 @@ def parse_mod(mod_in, base):
 
     return (mod_out, mod_in[cur:], base)
 
-def process_mod_component(component, mod, cur, base=0): 
+def p_mod_def(mod, cur, sym_table): 
+    COUNT = 'def_count'
+    LIST = 'def_list'
+    def_list = { COUNT: int(mod[cur]), LIST: {} }
+    cur += 1
+    while cur < len(mod):
+        if len(def_list[LIST]) >= def_list[COUNT]:
+            break
+        else:
+            sym = mod[cur]
+            sym_val = mod[cur + 1]
+            def_list[LIST][sym] = int(sym_val)
+            if sym in sym_table: 
+                sym_table[sym][SYM_ERR] = "Error: This variable is multiply defined; last value used."
+            else:
+                sym_table[sym] = { SYM_VAL: None, SYM_ERR: None }
+            sym_table[sym][SYM_VAL] = sym_val
+            cur += 2
+    return def_list, cur, sym_table
+
+def p_mod_use(mod, cur): 
+    pass
+
+def p_mod_prog(mod, cur, base): 
+    pass
+
+def process_mod_component(component, mod, cur, base=0, sym_table=None): 
     '''
     This function processes any of a module's 3 components: 
     1) definition list; 2) use list; and 3) program text. 
@@ -145,7 +173,7 @@ def generate_sym_table(mods):
 def main():
     uin = get_input()
     print('\n')
-    mods = process_user_input(uin)
+    mods = uin_frist_pass(uin)
     # print("progs is " + str(processed_mod))
     sym_table = generate_sym_table(mods)
     print(sym_table)
