@@ -48,7 +48,7 @@ def parse_mod(mod_in, base, sym_table):
 
     mod_out[DEF], cur, sym_table = p_mod_def(mod_in, cur, sym_table)
     mod_out[USE], cur = p_mod_use(mod_in, cur)
-    mod_out[PROG], cur = process_mod_component(PROG, mod_in, cur, base)
+    mod_out[PROG], cur = p_mod_prog(mod_in, cur, base)
 
     base += mod_out[PROG]['prog_count']
 
@@ -88,7 +88,17 @@ def p_mod_use(mod, cur):
     return use_list, cur
 
 def p_mod_prog(mod, cur, base): 
-    pass
+    COUNT = 'prog_count'
+    LIST = 'prog_list'
+    prog_list = { COUNT: int(mod[cur]), BASE: base, LIST: [] }
+    cur += 1
+    while cur < len(mod):
+        if len(prog_list[LIST]) >= prog_list[COUNT]: 
+            break
+        else: 
+            prog_list[LIST].append({ TYPE: mod[cur], WORD: int(mod[cur + 1]) })
+            cur += 2
+    return prog_list, cur
 
 def process_mod_component(component, mod, cur, base=0, sym_table=None): 
     '''
