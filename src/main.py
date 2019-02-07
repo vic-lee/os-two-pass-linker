@@ -9,6 +9,7 @@ MOD_COUNT = "mod_count"
 MODS = "mods"
 TYPE = "type"
 WORD = "word"
+PROG_ERR = "error"
 SYM_VAL = "symbol_value"
 SYM_ERR = "symbol_error_msg"
 
@@ -96,7 +97,11 @@ def p_mod_prog(mod, cur, base):
         if len(prog_list[LIST]) >= prog_list[COUNT]: 
             break
         else: 
-            prog_list[LIST].append({ TYPE: mod[cur], WORD: int(mod[cur + 1]) })
+            prog_list[LIST].append({ 
+                TYPE: mod[cur], 
+                WORD: int(mod[cur + 1]), 
+                PROG_ERR: ""
+            })
             cur += 2
     return prog_list, cur
 
@@ -104,36 +109,46 @@ def process_external_addr(old_addr, new_addr):
     first_digit = int(str(old_addr)[0])
     return (first_digit * 1000 + new_addr)
 
-def resolve_addresses(mods, sym_table): 
+def uin_sec_pass(mods, sym_table): 
+    mmap = []
     sym_use_stat = {}
     for sym in sym_table: 
         sym_use_stat[sym] = False
+
     for mod in mods[MODS]:
         use_list = mod[USE]['use_list']
         prog = mod[PROG]
         prog_list = prog['prog_list']
         for usym, uaddr in use_list.items():
             '''Resolve external addresses'''
+            is_sym_used_not_defined = False
             old_sym_addr = prog_list[uaddr][WORD]
             addr_cur = str(old_sym_addr)
             new_sym_addr = None
             if usym in sym_table: 
-                new_sym_addr = sym_table[usym]
+                new_sym_addr = sym_table[usym][SYM_VAL]
                 sym_use_stat[usym] = True
             else: 
-                new_sym_addr = 111
-                print(usym + 'was used but not defined. It has been given the value 111.')
-            prog_list[uaddr][WORD] = process_external_addr(old_sym_addr, new_sym_addr)
+                is_sym_used_not_defined = True
+                new_sym_addr = '111'
+                prog_list[uaddr][PROG_ERR] = 'Error: ' + usym + ' was used but not defined. It has been given the value 111.'
+            prog_list[uaddr][WORD] = process_external_addr(old_sym_addr, int(new_sym_addr))
             while addr_cur[-3:] != '777':
                 next_addr = str(prog_list[int(addr_cur[-3:])][WORD])
-                prog_list[int(addr_cur[-3:])][WORD] = process_external_addr(int(next_addr), new_sym_addr)
+                prog_list[int(addr_cur[-3:])][WORD] = process_external_addr(int(next_addr), int(new_sym_addr))
+                if is_sym_used_not_defined == True: 
+                    prog_list[int(addr_cur[-3:])][PROG_ERR] = 'Error: ' + usym + ' was used but not defined. It has been given the value 111.'
                 addr_cur = next_addr
+
         for progpair in prog_list: 
             '''Resolve relative addresses'''
             if progpair[TYPE] == 'R': 
                 progpair[WORD] += prog[BASE]
-        print_list(prog_list)
-        print('\n')
+            mmap.append(str(progpair[WORD]) + ' ' + progpair[PROG_ERR])
+
+        # print_list(prog_list)
+        # print('\n')
+    print("\n".join(mmap))
     for sym in sym_use_stat: 
         if sym_use_stat[sym] == False: 
             print('Warning: ' + sym + ' was defined but never used.')
@@ -142,13 +157,9 @@ def resolve_addresses(mods, sym_table):
 def main():
     uin = get_input()
     print('\n')
-    mod, sym_table = uin_frist_pass(uin)
+    mods, sym_table = uin_frist_pass(uin)
     print(sym_table)
-    # print("progs is " + str(processed_mod))
-    # sym_table = generate_sym_table(mods)
-    # print(sym_table)
-    # print('\n')
-    # mods = resolve_addresses(mods, sym_table)
+    mods = uin_sec_pass(mods, sym_table)
     
 
 if __name__ == "__main__":
