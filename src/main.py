@@ -94,6 +94,9 @@ def process_external_addr(old_addr, new_addr):
     return (first_digit * 1000 + new_addr)
 
 def resolve_addresses(mods, sym_table): 
+    sym_use_stat = {}
+    for sym in sym_table: 
+        sym_use_stat[sym] = False
     for mod in mods[MODS]:
         use_list = mod[USE]['use_list']
         prog = mod[PROG]
@@ -105,6 +108,7 @@ def resolve_addresses(mods, sym_table):
             new_sym_addr = None
             if usym in sym_table: 
                 new_sym_addr = sym_table[usym]
+                sym_use_stat[usym] = True
             else: 
                 new_sym_addr = 111
                 print(usym + 'was used but not defined. It has been given the value 111.')
@@ -119,6 +123,9 @@ def resolve_addresses(mods, sym_table):
                 progpair[WORD] += prog[BASE]
         print_list(prog_list)
         print('\n')
+    for sym in sym_use_stat: 
+        if sym_use_stat[sym] == False: 
+            print('Warning: ' + sym + ' was defined but never used.')
     return mods
 
 def generate_sym_table(mods):
