@@ -102,7 +102,12 @@ def resolve_addresses(mods, sym_table):
             '''Resolve external addresses'''
             old_sym_addr = prog_list[uaddr][WORD]
             addr_cur = str(old_sym_addr)
-            new_sym_addr = sym_table[usym]
+            new_sym_addr = None
+            if usym in sym_table: 
+                new_sym_addr = sym_table[usym]
+            else: 
+                new_sym_addr = 111
+                print(usym + 'was used but not defined. It has been given the value 111.')
             prog_list[uaddr][WORD] = process_external_addr(old_sym_addr, new_sym_addr)
             while addr_cur[-3:] != '777':
                 next_addr = str(prog_list[int(addr_cur[-3:])][WORD])
@@ -118,11 +123,16 @@ def resolve_addresses(mods, sym_table):
 
 def generate_sym_table(mods):
     sym_table = {}
+    multiple_def_syms = []
     for mod in mods[MODS]:
         def_dict = mod[DEF]["def_list"]
         for sym in def_dict:
+            if sym in sym_table: 
+                multiple_def_syms.append(sym)
             def_dict[sym] += mod[PROG][BASE]
         sym_table.update(def_dict)
+    for elem in multiple_def_syms: 
+        print(elem + ' has multiple definitions. Last definition used.')
     return sym_table
 
 def main():
