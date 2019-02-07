@@ -10,6 +10,7 @@ MODS = "mods"
 TYPE = "type"
 WORD = "word"
 PROG_ERR = "error"
+PROG_SYM_USED_FLAG = "used_flag"
 SYM_VAL = "symbol_value"
 SYM_ERR = "symbol_error_msg"
 
@@ -100,6 +101,7 @@ def p_mod_prog(mod, cur, base):
             prog_list[LIST].append({ 
                 TYPE: mod[cur], 
                 WORD: int(mod[cur + 1]), 
+                PROG_SYM_USED_FLAG: False,
                 PROG_ERR: ""
             })
             cur += 2
@@ -124,17 +126,25 @@ def format_mmap_out(mmap, sym_use_stat):
             mmap_str += 'Warning: ' + sym + ' was defined but never used.'
     return mmap_str
 
+def check_multiple_sym_usage(progpair):
+    if progpair[PROG_SYM_USED_FLAG] == True: 
+        progpair[PROG_ERR] = 'Error: Multiple symbols used here; last one used'
+    else: 
+        progpair[PROG_SYM_USED_FLAG] = True
+    return progpair
+
 def uin_sec_pass(mods, sym_table): 
     mmap = []
     sym_use_stat = {}
     for sym in sym_table: 
         sym_use_stat[sym] = False
-
+    c = 0
     for mod in mods[MODS]:
         use_list = mod[USE]['use_list']
         prog = mod[PROG]
         prog_list = prog['prog_list']
-
+        print('this is mod ' + str(c))
+        c += 1
         for usym, uaddr in use_list.items():
             '''Resolve external addresses'''
             is_sym_used_not_defined = False
@@ -149,11 +159,18 @@ def uin_sec_pass(mods, sym_table):
                 new_sym_addr = '111'
                 prog_list[uaddr][PROG_ERR] = 'Error: ' + usym + ' was used but not defined. It has been given the value 111.'
             prog_list[uaddr][WORD] = process_external_addr(old_sym_addr, int(new_sym_addr))
+            print_list(prog_list)
+            print('addrcur: ' + addr_cur)
+            prog_list[uaddr] = check_multiple_sym_usage(prog_list[uaddr])
             while addr_cur[-3:] != '777':
-                next_addr = str(prog_list[int(addr_cur[-3:])][WORD])
-                prog_list[int(addr_cur[-3:])][WORD] = process_external_addr(int(next_addr), int(new_sym_addr))
+                next_index = int(addr_cur[-3:])
+                print('next idx is ' + str(next_index))
+                print_list(prog_list)
+                next_addr = str(prog_list[next_index][WORD])
+                prog_list[next_index][WORD] = process_external_addr(int(next_addr), int(new_sym_addr))
+                prog_list[next_index] = check_multiple_sym_usage(prog_list[next_index])
                 if is_sym_used_not_defined == True: 
-                    prog_list[int(addr_cur[-3:])][PROG_ERR] = 'Error: ' + usym + ' was used but not defined. It has been given the value 111.'
+                    prog_list[next_index][PROG_ERR] = 'Error: ' + usym + ' was used but not defined. It has been given the value 111.'
                 addr_cur = next_addr
 
         for progpair in prog_list: 
