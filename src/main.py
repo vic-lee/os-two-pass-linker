@@ -133,6 +133,17 @@ def check_multiple_sym_usage(progpair):
         progpair[PROG_SYM_USED_FLAG] = True
     return progpair
 
+def check_sym_used_not_defined(progpair, sym, sym_table, sym_use_stat): 
+    is_sym_used_not_defined = False
+    if sym in sym_table: 
+        new_sym_addr = sym_table[sym][SYM_VAL]
+        sym_use_stat[sym] = True
+    else: 
+        is_sym_used_not_defined = True
+        new_sym_addr = '111'
+        progpair[PROG_ERR] = 'Error: ' + sym + ' was used but not defined. It has been given the value 111.'
+    return progpair, new_sym_addr, sym_use_stat, is_sym_used_not_defined
+
 def uin_sec_pass(mods, sym_table): 
     mmap = []
     sym_use_stat = {}
@@ -151,13 +162,10 @@ def uin_sec_pass(mods, sym_table):
             old_sym_addr = prog_list[uaddr][WORD]
             addr_cur = str(old_sym_addr)
             new_sym_addr = None
-            if usym in sym_table: 
-                new_sym_addr = sym_table[usym][SYM_VAL]
-                sym_use_stat[usym] = True
-            else: 
-                is_sym_used_not_defined = True
-                new_sym_addr = '111'
-                prog_list[uaddr][PROG_ERR] = 'Error: ' + usym + ' was used but not defined. It has been given the value 111.'
+
+            prog_list[uaddr], new_sym_addr, sym_use_stat, is_sym_used_not_defined \
+                = check_sym_used_not_defined(prog_list[uaddr], usym, sym_table, sym_use_stat)
+                
             prog_list[uaddr][WORD] = process_external_addr(old_sym_addr, int(new_sym_addr))
             print_list(prog_list)
             print('addrcur: ' + addr_cur)
