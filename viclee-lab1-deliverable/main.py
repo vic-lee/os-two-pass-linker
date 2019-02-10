@@ -126,6 +126,19 @@ def undefined_sym_err(sym):
     USED_NOT_DEFINED_ERR = 'Error: ' + sym + ' was used but not defined. It has been given the value 111.'
     return USED_NOT_DEFINED_ERR
 
+def resolve_new_addr(is_sym_defined, sym, inst_pair, sym_table, sym_use_stat):
+    new_addr = None
+    old_addr = inst_pair[k.WORD]
+    if is_sym_defined:
+        new_addr = sym_table[sym][k.SYM_VAL]
+        sym_use_stat[sym] = True
+    else:
+        inst_pair[k.PROG_ERR] = undefined_sym_err(sym)
+        new_addr = 111
+    inst_pair[k.WORD] = process_ext_addr(old_addr, new_addr)
+    return inst_pair
+
+
 def modify_word_last_three_digits(word, replacement):
     return int(str(word)[0]) * 1000 + replacement
 
@@ -150,26 +163,22 @@ def input_second_pass(mods, sym_table):
 def process_use_list(use_list, inst_list, sym_table, sym_use_stat):
     MULT_SYM_USAGE_ERR = 'Error: Multiple symbols used here; last one used'
     for addr, sym_info in use_list.items():
-        '''Resolve external addresses'''
         addr = int(addr)
         sym = sym_info[k.SYM_KEY]
+
         is_sym_multibly_used = sym_info[k.SYM_MULT_USE_FLAG]
+        if is_sym_multibly_used: 
+            inst_list[addr][k.PROG_ERR] = MULT_SYM_USAGE_ERR
 
         old_addr = inst_list[addr][k.WORD]
         addr_cur = str(old_addr)
-
-        new_addr = None
+        
         is_sym_defined = is_symbol_defined(sym, sym_table)
-        if is_sym_defined:
-            new_addr = sym_table[sym][k.SYM_VAL]
-            sym_use_stat[sym] = True
-        else:
-            inst_list[addr][k.PROG_ERR] = undefined_sym_err(sym)
-            new_addr = 111
 
-        inst_list[addr][k.WORD] = process_ext_addr(old_addr, new_addr)
-        if is_sym_multibly_used: 
-            inst_list[addr][k.PROG_ERR] = MULT_SYM_USAGE_ERR
+        inst_list[addr] = resolve_new_addr(\
+            is_sym_defined, sym, inst_list[addr], sym_table, sym_use_stat)
+
+        new_addr = str(inst_list[addr][k.WORD])[-3:]
         
         while addr_cur[-3:] != '777':
             next_index = int(addr_cur[-3:])
