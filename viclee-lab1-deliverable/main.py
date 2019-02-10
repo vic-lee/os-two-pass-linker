@@ -83,8 +83,6 @@ def parse_use(mod, cur):
     return use_list, cur
 
 def parse_instructions(mod, cur, base): 
-    # COUNT = 'instruction_count'
-    # LIST = 'instruction_list'
     instruction_count = int(mod[cur])
     instruction_list = { 
         k.INSTRUCTION_COUNT: instruction_count, 
@@ -129,15 +127,17 @@ def check_multiple_sym_usage(instruction_pair):
         instruction_pair[k.PROG_SYM_USED_FLAG] = True
     return instruction_pair
 
-def check_sym_used_not_defined(progpair, sym, sym_table, sym_use_stat): 
+def check_sym_used_not_defined(inst_pair, sym, sym_table, sym_use_stat): 
     is_sym_used_not_defined = False
-    if sym in sym_table: 
-        new_sym_addr = sym_table[sym][k.SYM_VAL]
-        sym_use_stat[sym] = True
-    else: 
+
+    if sym not in sym_table: 
+        USED_NOT_DEFINED_ERR = 'Error: ' + sym + ' was used but not defined. It has been given the value 111.'
+        inst_pair[k.PROG_ERR] = USED_NOT_DEFINED_ERR
         is_sym_used_not_defined = True
-        new_sym_addr = '111'
-        progpair[k.PROG_ERR] = 'Error: ' + sym + ' was used but not defined. It has been given the value 111.'
+    else:
+        sym_use_stat[sym] = True
+    
+    new_sym_addr = sym_table[sym][k.SYM_VAL] if is_sym_used_not_defined else '111'
     return new_sym_addr, is_sym_used_not_defined
 
 def modify_word_last_three_digits(word, replacement):
@@ -162,34 +162,33 @@ def input_second_pass(mods, sym_table):
     return mmap_out
 
 def process_use_list(use_list, inst_list, sym_table, sym_use_stat):
-    for uaddr, sym_info in use_list.items():
+    for addr, sym_info in use_list.items():
         '''Resolve external addresses'''
-        uaddr = int(uaddr)
-        usym = sym_info[k.SYM_KEY]
+        addr = int(addr)
+        sym = sym_info[k.SYM_KEY]
         is_sym_multibly_used = sym_info[k.SYM_MULT_USE_FLAG]
 
         is_sym_used_not_defined = False
-        old_sym_addr = inst_list[uaddr][k.WORD]
+        old_sym_addr = inst_list[addr][k.WORD]
         addr_cur = str(old_sym_addr)
 
         new_sym_addr, is_sym_used_not_defined \
-            = check_sym_used_not_defined(inst_list[uaddr], usym, sym_table, sym_use_stat)
+            = check_sym_used_not_defined(inst_list[addr], sym, sym_table, sym_use_stat)
 
-        inst_list[uaddr][k.WORD] = process_ext_addr(old_sym_addr, int(new_sym_addr))
+        inst_list[addr][k.WORD] = process_ext_addr(old_sym_addr, int(new_sym_addr))
         if is_sym_multibly_used: 
-            inst_list[uaddr][k.PROG_ERR] = 'Error: Multiple symbols used here; last one used'
-        inst_list[uaddr] = check_multiple_sym_usage(inst_list[uaddr])
+            inst_list[addr][k.PROG_ERR] = 'Error: Multiple symbols used here; last one used'
+        inst_list[addr] = check_multiple_sym_usage(inst_list[addr])
         
         while addr_cur[-3:] != '777':
             next_index = int(addr_cur[-3:])
             next_addr = str(inst_list[next_index][k.WORD])
             inst_list[next_index][k.WORD] = process_ext_addr(int(next_addr), int(new_sym_addr))
-
             inst_list[next_index] = check_multiple_sym_usage(inst_list[next_index])
             if is_sym_multibly_used: 
-                inst_list[uaddr][k.PROG_ERR] = 'Error: Multiple symbols used here; last one used'
+                inst_list[addr][k.PROG_ERR] = 'Error: Multiple symbols used here; last one used'
             if is_sym_used_not_defined == True: 
-                inst_list[next_index][k.PROG_ERR] = 'Error: ' + usym + \
+                inst_list[next_index][k.PROG_ERR] = 'Error: ' + sym + \
                     ' was used but not defined. It has been given the value 111.'
             addr_cur = next_addr
 
