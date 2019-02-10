@@ -14,6 +14,8 @@ SYM_ERR = "symbol_error_msg"
 MACHINE_SIZE = 300
 MAX_LEGAL_VAL = 299
 
+mmap = []
+
 def print_list(l):
     for item in l: 
         print(item)
@@ -157,11 +159,10 @@ def modify_word_last_three_digits(word, replacement):
     return int(str(word)[0]) * 1000 + replacement
 
 def uin_sec_pass(mods, sym_table): 
-    mmap = []
+    # mmap = []
     sym_use_stat = {}
     for sym in sym_table: 
         sym_use_stat[sym] = False
-    c = 0
     for mod in mods[MODS]:
         use_list = mod[USE]['use_list']
         prog = mod[PROG]
@@ -171,7 +172,7 @@ def uin_sec_pass(mods, sym_table):
             use_list, prog_list, sym_table, sym_use_stat = \
                 process_use_list(use_list, prog_list, sym_table, sym_use_stat)
         
-        prog_list, mmap = process_progs(prog_list, mmap, prog[BASE])
+        prog_list = process_progs(prog_list, prog[BASE])
 
     mmap_out = format_mmap_out(mmap, sym_use_stat)
     return mmap_out
@@ -201,7 +202,7 @@ def process_use_list(use_list, prog_list, sym_table, sym_use_stat):
 
         return use_list, prog_list, sym_table, sym_use_stat
 
-def process_progs(prog_list, mmap, base):
+def process_progs(prog_list, base):
     for progpair in prog_list: 
 
         if progpair[TYPE] == 'R': 
@@ -217,7 +218,7 @@ def process_progs(prog_list, mmap, base):
 
         mmap.append(str(progpair[WORD]) + ' ' + progpair[PROG_ERR])
     
-    return prog_list, mmap
+    return prog_list
 
 
 def main():
