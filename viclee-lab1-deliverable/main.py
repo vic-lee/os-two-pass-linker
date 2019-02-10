@@ -138,27 +138,8 @@ def resolve_new_addr(is_sym_defined, sym, inst_pair, sym_table, sym_use_stat):
     inst_pair[k.WORD] = process_ext_addr(old_addr, new_addr)
     return inst_pair
 
-
 def modify_word_last_three_digits(word, replacement):
     return int(str(word)[0]) * 1000 + replacement
-
-def input_second_pass(mods, sym_table): 
-    mmap = []
-    sym_use_stat = {}
-    for sym in sym_table: 
-        sym_use_stat[sym] = False
-    for mod in mods[k.MODS]:
-        use_list = mod[k.USE][k.USE_LIST]
-        prog = mod[k.INSTRUCTIONS]
-        inst_list = prog[k.INSTRUCTION_LIST]
-
-        if use_list:
-            process_use_list(use_list, inst_list, sym_table, sym_use_stat)
-        
-        process_instructions(inst_list, mmap, prog[k.BASE])
-
-    mmap_out = format_mmap_out(mmap, sym_use_stat)
-    return mmap_out
 
 def process_use_list(use_list, inst_list, sym_table, sym_use_stat):
     MULT_SYM_USAGE_ERR = 'Error: Multiple symbols used here; last one used'
@@ -205,6 +186,24 @@ def process_instructions(inst_list, mmap, base):
                 progpair[k.WORD] = modify_word_last_three_digits(progpair[k.WORD], MAX_LEGAL_VAL)
 
         mmap.append(str(progpair[k.WORD]) + ' ' + progpair[k.PROG_ERR])
+
+def input_second_pass(mods, sym_table): 
+    mmap = []
+    sym_use_stat = {}
+    for sym in sym_table: 
+        sym_use_stat[sym] = False
+    for mod in mods[k.MODS]:
+        use_list = mod[k.USE][k.USE_LIST]
+        prog = mod[k.INSTRUCTIONS]
+        inst_list = prog[k.INSTRUCTION_LIST]
+
+        if use_list:
+            process_use_list(use_list, inst_list, sym_table, sym_use_stat)
+        
+        process_instructions(inst_list, mmap, prog[k.BASE])
+
+    mmap_out = format_mmap_out(mmap, sym_use_stat)
+    return mmap_out
 
 def main():
     uin = get_input()
