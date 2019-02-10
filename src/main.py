@@ -194,24 +194,30 @@ def uin_sec_pass(mods, sym_table):
                     prog_list[next_index][PROG_ERR] = 'Error: ' + usym + \
                         ' was used but not defined. It has been given the value 111.'
                 addr_cur = next_addr
-
-        for progpair in prog_list: 
-
-            if progpair[TYPE] == 'R': 
-                if int(str(progpair[WORD])[-3:]) >= len(prog_list):
-                    progpair[PROG_ERR] = 'Error: Type R address exceeds module size; 0 (relative) used'
-                    progpair[WORD] = modify_word_last_three_digits(progpair[WORD], 0)
-                progpair[WORD] += prog[BASE]
-
-            elif progpair[TYPE] == 'A':
-                if int(str(progpair[WORD])[-3:]) >= MACHINE_SIZE: 
-                    progpair[PROG_ERR] = 'Error: A type address exceeds machine size; max legal value used'
-                    progpair[WORD] = modify_word_last_three_digits(progpair[WORD], MAX_LEGAL_VAL)
-
-            mmap.append(str(progpair[WORD]) + ' ' + progpair[PROG_ERR])
+        
+        prog_list, mmap = process_progs(prog_list, mmap, prog[BASE])
 
     mmap_out = format_mmap_out(mmap, sym_use_stat)
     return mmap_out
+
+def process_progs(prog_list, mmap, base):
+    for progpair in prog_list: 
+
+        if progpair[TYPE] == 'R': 
+            if int(str(progpair[WORD])[-3:]) >= len(prog_list):
+                progpair[PROG_ERR] = 'Error: Type R address exceeds module size; 0 (relative) used'
+                progpair[WORD] = modify_word_last_three_digits(progpair[WORD], 0)
+            progpair[WORD] += base
+
+        elif progpair[TYPE] == 'A':
+            if int(str(progpair[WORD])[-3:]) >= MACHINE_SIZE: 
+                progpair[PROG_ERR] = 'Error: A type address exceeds machine size; max legal value used'
+                progpair[WORD] = modify_word_last_three_digits(progpair[WORD], MAX_LEGAL_VAL)
+
+        mmap.append(str(progpair[WORD]) + ' ' + progpair[PROG_ERR])
+    
+    return prog_list, mmap
+
 
 def main():
     uin = get_input()
