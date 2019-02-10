@@ -11,6 +11,9 @@ PROG_SYM_USED_FLAG = "used_flag"
 SYM_VAL = "symbol_value"
 SYM_ERR = "symbol_error_msg"
 
+MACHINE_SIZE = 300
+MAX_LEGAL_VAL = 299
+
 def print_list(l):
     for item in l: 
         print(item)
@@ -46,8 +49,12 @@ def parse_mod(mod_in, base, sym_table):
     cur = 0
 
     mod_out[DEF], cur, sym_table = parse_def(mod_in, cur, sym_table, base)
+    print("mod def")
+    print(mod_out[DEF])
     mod_out[USE], cur = parse_use(mod_in, cur)
     mod_out[PROG], cur = parse_prog(mod_in, cur, base)
+    print("mod prog")
+    print(mod_out[PROG])
 
     base += mod_out[PROG]['prog_count']
     return mod_out, mod_in[cur:], base, sym_table
@@ -57,6 +64,7 @@ def parse_def(mod, cur, sym_table, base):
     LIST = 'def_list'
     def_list = { COUNT: int(mod[cur]), LIST: {} }
     cur += 1
+    print('def count is: ' + str(def_list[COUNT]))
     while cur < len(mod):
         if len(def_list[LIST]) >= def_list[COUNT]:
             break
@@ -81,6 +89,8 @@ def parse_use(mod, cur):
         if len(use_list[LIST]) >= use_list[COUNT]: 
             break
         else:
+            print('current mod cur is: ' + str(mod[cur]))
+            print('next mod cur is: ' + str(mod[cur + 1]))
             use_list[LIST][mod[cur]] = int(mod[cur + 1])
             cur += 2
     return use_list, cur
@@ -94,6 +104,8 @@ def parse_prog(mod, cur, base):
         if len(prog_list[LIST]) >= prog_list[COUNT]: 
             break
         else: 
+            print('type: ' + str(mod[cur]))
+            print('word: ' + str(mod[cur+1]))
             prog_list[LIST].append({ 
                 TYPE: mod[cur], 
                 WORD: int(mod[cur + 1]), 
@@ -181,12 +193,18 @@ def uin_sec_pass(mods, sym_table):
                 addr_cur = next_addr
 
         for progpair in prog_list: 
+
             if progpair[TYPE] == 'R': 
-                '''Resolve relative addresses'''
                 if int(str(progpair[WORD])[-3:]) >= len(prog_list):
                     progpair[PROG_ERR] = 'Error: Type R address exceeds module size; 0 (relative) used'
                     progpair[WORD] = int(str(progpair[WORD])[0]) * 1000
                 progpair[WORD] += prog[BASE]
+
+            elif progpair[TYPE] == 'A':
+                if int(str(progpair[WORD])[-3:]) >= MACHINE_SIZE: 
+                    progpair[PROG_ERR] = 'Error: A type address exceeds machine size; max legal value used'
+                    progpair[WORD] = int(str(progpair[WORD])[0]) * 1000 + MAX_LEGAL_VAL
+                    
             mmap.append(str(progpair[WORD]) + ' ' + progpair[PROG_ERR])
 
     mmap_out = format_mmap_out(mmap, sym_use_stat)
