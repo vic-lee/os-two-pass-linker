@@ -175,17 +175,17 @@ def input_second_pass(mods, sym_table):
     for mod in mods[MODS]:
         use_list = mod[USE][USE_LIST]
         prog = mod[INSTRUCTIONS]
-        prog_list = prog[INSTRUCTION_LIST]
+        inst_list = prog[INSTRUCTION_LIST]
 
         if use_list:
-            process_use_list(use_list, prog_list, sym_table, sym_use_stat)
+            process_use_list(use_list, inst_list, sym_table, sym_use_stat)
         
-        process_progs(prog_list, mmap, prog[BASE])
+        process_instructions(inst_list, mmap, prog[BASE])
 
     mmap_out = format_mmap_out(mmap, sym_use_stat)
     return mmap_out
 
-def process_use_list(use_list, prog_list, sym_table, sym_use_stat):
+def process_use_list(use_list, inst_list, sym_table, sym_use_stat):
     for uaddr, sym_info in use_list.items():
         '''Resolve external addresses'''
         uaddr = int(uaddr)
@@ -193,36 +193,36 @@ def process_use_list(use_list, prog_list, sym_table, sym_use_stat):
         is_sym_multibly_used = sym_info[SYM_MULT_USE_FLAG]
 
         is_sym_used_not_defined = False
-        old_sym_addr = prog_list[uaddr][WORD]
+        old_sym_addr = inst_list[uaddr][WORD]
         addr_cur = str(old_sym_addr)
 
         new_sym_addr, is_sym_used_not_defined \
-            = check_sym_used_not_defined(prog_list[uaddr], usym, sym_table, sym_use_stat)
+            = check_sym_used_not_defined(inst_list[uaddr], usym, sym_table, sym_use_stat)
 
-        prog_list[uaddr][WORD] = process_ext_addr(old_sym_addr, int(new_sym_addr))
+        inst_list[uaddr][WORD] = process_ext_addr(old_sym_addr, int(new_sym_addr))
         if is_sym_multibly_used: 
-            prog_list[uaddr][PROG_ERR] = 'Error: Multiple symbols used here; last one used'
-        prog_list[uaddr] = check_multiple_sym_usage(prog_list[uaddr])
+            inst_list[uaddr][PROG_ERR] = 'Error: Multiple symbols used here; last one used'
+        inst_list[uaddr] = check_multiple_sym_usage(inst_list[uaddr])
         
         while addr_cur[-3:] != '777':
             next_index = int(addr_cur[-3:])
-            next_addr = str(prog_list[next_index][WORD])
-            prog_list[next_index][WORD] = process_ext_addr(int(next_addr), int(new_sym_addr))
+            next_addr = str(inst_list[next_index][WORD])
+            inst_list[next_index][WORD] = process_ext_addr(int(next_addr), int(new_sym_addr))
 
-            prog_list[next_index] = check_multiple_sym_usage(prog_list[next_index])
+            inst_list[next_index] = check_multiple_sym_usage(inst_list[next_index])
             if is_sym_multibly_used: 
-                prog_list[uaddr][PROG_ERR] = 'Error: Multiple symbols used here; last one used'
+                inst_list[uaddr][PROG_ERR] = 'Error: Multiple symbols used here; last one used'
             if is_sym_used_not_defined == True: 
-                prog_list[next_index][PROG_ERR] = 'Error: ' + usym + \
+                inst_list[next_index][PROG_ERR] = 'Error: ' + usym + \
                     ' was used but not defined. It has been given the value 111.'
             addr_cur = next_addr
 
-def process_progs(prog_list, mmap, base):
+def process_instructions(inst_list, mmap, base):
     EXCEED_MOD_SIZE_ERR = 'Error: Type R address exceeds module size; 0 (relative) used'
     EXCEED_MACHINE_SIZE_ERR = 'Error: A type address exceeds machine size; max legal value used'
-    for progpair in prog_list: 
+    for progpair in inst_list: 
         if progpair[TYPE] == 'R': 
-            if int(str(progpair[WORD])[-3:]) >= len(prog_list):
+            if int(str(progpair[WORD])[-3:]) >= len(inst_list):
                 progpair[PROG_ERR] = EXCEED_MOD_SIZE_ERR
                 progpair[WORD] = modify_word_last_three_digits(progpair[WORD], 0)
             progpair[WORD] += base
