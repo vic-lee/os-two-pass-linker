@@ -153,6 +153,9 @@ def check_sym_used_not_defined(progpair, sym, sym_table, sym_use_stat):
         progpair[PROG_ERR] = 'Error: ' + sym + ' was used but not defined. It has been given the value 111.'
     return progpair, new_sym_addr, sym_use_stat, is_sym_used_not_defined
 
+def modify_word_last_three_digits(word, replacement):
+    return int(str(word)[0]) * 1000 + replacement
+
 def uin_sec_pass(mods, sym_table): 
     mmap = []
     sym_use_stat = {}
@@ -197,14 +200,14 @@ def uin_sec_pass(mods, sym_table):
             if progpair[TYPE] == 'R': 
                 if int(str(progpair[WORD])[-3:]) >= len(prog_list):
                     progpair[PROG_ERR] = 'Error: Type R address exceeds module size; 0 (relative) used'
-                    progpair[WORD] = int(str(progpair[WORD])[0]) * 1000
+                    progpair[WORD] = modify_word_last_three_digits(progpair[WORD], 0)
                 progpair[WORD] += prog[BASE]
 
             elif progpair[TYPE] == 'A':
                 if int(str(progpair[WORD])[-3:]) >= MACHINE_SIZE: 
                     progpair[PROG_ERR] = 'Error: A type address exceeds machine size; max legal value used'
-                    progpair[WORD] = int(str(progpair[WORD])[0]) * 1000 + MAX_LEGAL_VAL
-                    
+                    progpair[WORD] = modify_word_last_three_digits(progpair[WORD], MAX_LEGAL_VAL)
+
             mmap.append(str(progpair[WORD]) + ' ' + progpair[PROG_ERR])
 
     mmap_out = format_mmap_out(mmap, sym_use_stat)
