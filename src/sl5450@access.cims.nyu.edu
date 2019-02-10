@@ -24,7 +24,7 @@ def print_list(l):
         print(item)
 
 def get_input():
-    print("1) Paste your input, \n2) Enter a line break if you're not on a new line, \n3) Enter Ctrl-D to exit input mode:")
+    print("Paste your input, then enter Ctrl-D to exit input mode:")
     user_input = []
     while True:
         try:
@@ -213,7 +213,6 @@ def process_progs(prog_list, mmap, base):
                 progpair[WORD] = modify_word_last_three_digits(progpair[WORD], 0)
             progpair[WORD] += base
         elif progpair[TYPE] == 'A':
-            # print(int(str(progpair[WORD])[-3:]))
             if int(str(progpair[WORD])[-3:]) >= MACHINE_SIZE: 
                 progpair[PROG_ERR] = 'Error: A type address exceeds machine size; max legal value used'
                 progpair[WORD] = modify_word_last_three_digits(progpair[WORD], MAX_LEGAL_VAL)
