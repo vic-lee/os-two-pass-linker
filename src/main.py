@@ -14,8 +14,6 @@ SYM_ERR = "symbol_error_msg"
 MACHINE_SIZE = 300
 MAX_LEGAL_VAL = 299
 
-mmap = []
-
 def print_list(l):
     for item in l: 
         print(item)
@@ -159,7 +157,7 @@ def modify_word_last_three_digits(word, replacement):
     return int(str(word)[0]) * 1000 + replacement
 
 def uin_sec_pass(mods, sym_table): 
-    # mmap = []
+    mmap = []
     sym_use_stat = {}
     for sym in sym_table: 
         sym_use_stat[sym] = False
@@ -169,10 +167,9 @@ def uin_sec_pass(mods, sym_table):
         prog_list = prog['prog_list']
 
         if use_list:
-            use_list, prog_list, sym_table, sym_use_stat = \
-                process_use_list(use_list, prog_list, sym_table, sym_use_stat)
+            process_use_list(use_list, prog_list, sym_table, sym_use_stat)
         
-        prog_list = process_progs(prog_list, prog[BASE])
+        process_progs(prog_list, mmap, prog[BASE])
 
     mmap_out = format_mmap_out(mmap, sym_use_stat)
     return mmap_out
@@ -200,25 +197,19 @@ def process_use_list(use_list, prog_list, sym_table, sym_use_stat):
                     ' was used but not defined. It has been given the value 111.'
             addr_cur = next_addr
 
-        return use_list, prog_list, sym_table, sym_use_stat
-
-def process_progs(prog_list, base):
+def process_progs(prog_list, mmap, base):
     for progpair in prog_list: 
-
         if progpair[TYPE] == 'R': 
             if int(str(progpair[WORD])[-3:]) >= len(prog_list):
                 progpair[PROG_ERR] = 'Error: Type R address exceeds module size; 0 (relative) used'
                 progpair[WORD] = modify_word_last_three_digits(progpair[WORD], 0)
             progpair[WORD] += base
-
         elif progpair[TYPE] == 'A':
             if int(str(progpair[WORD])[-3:]) >= MACHINE_SIZE: 
                 progpair[PROG_ERR] = 'Error: A type address exceeds machine size; max legal value used'
                 progpair[WORD] = modify_word_last_three_digits(progpair[WORD], MAX_LEGAL_VAL)
 
         mmap.append(str(progpair[WORD]) + ' ' + progpair[PROG_ERR])
-    
-    return prog_list
 
 
 def main():
