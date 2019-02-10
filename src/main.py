@@ -24,7 +24,11 @@ def print_list(l):
         print(item)
 
 def get_input():
-    print("1) Paste your input, \n2) Enter a line break if you're not on a new line, \n3) Enter Ctrl-D to exit input mode:")
+    print("""
+    1) Paste your input,
+    2) Enter a line break if you're not on a new line,
+    3) Enter Ctrl-D to exit input mode:
+    """)
     user_input = []
     while True:
         try:
