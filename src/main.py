@@ -49,12 +49,12 @@ def parse_mod(mod_in, base, sym_table):
     cur = 0
 
     mod_out[DEF], cur, sym_table = parse_def(mod_in, cur, sym_table, base)
-    print("mod def")
-    print(mod_out[DEF])
+    # print("mod def")
+    # print(mod_out[DEF])
     mod_out[USE], cur = parse_use(mod_in, cur)
     mod_out[PROG], cur = parse_prog(mod_in, cur, base)
-    print("mod prog")
-    print(mod_out[PROG])
+    # print("mod prog")
+    # print(mod_out[PROG])
 
     base += mod_out[PROG]['prog_count']
     return mod_out, mod_in[cur:], base, sym_table
@@ -64,7 +64,7 @@ def parse_def(mod, cur, sym_table, base):
     LIST = 'def_list'
     def_list = { COUNT: int(mod[cur]), LIST: {} }
     cur += 1
-    print('def count is: ' + str(def_list[COUNT]))
+    # print('def count is: ' + str(def_list[COUNT]))
     while cur < len(mod):
         if len(def_list[LIST]) >= def_list[COUNT]:
             break
@@ -89,8 +89,8 @@ def parse_use(mod, cur):
         if len(use_list[LIST]) >= use_list[COUNT]: 
             break
         else:
-            print('current mod cur is: ' + str(mod[cur]))
-            print('next mod cur is: ' + str(mod[cur + 1]))
+            # print('current mod cur is: ' + str(mod[cur]))
+            # print('next mod cur is: ' + str(mod[cur + 1]))
             use_list[LIST][mod[cur]] = int(mod[cur + 1])
             cur += 2
     return use_list, cur
@@ -104,8 +104,8 @@ def parse_prog(mod, cur, base):
         if len(prog_list[LIST]) >= prog_list[COUNT]: 
             break
         else: 
-            print('type: ' + str(mod[cur]))
-            print('word: ' + str(mod[cur+1]))
+            # print('type: ' + str(mod[cur]))
+            # print('word: ' + str(mod[cur+1]))
             prog_list[LIST].append({ 
                 TYPE: mod[cur], 
                 WORD: int(mod[cur + 1]), 
@@ -166,39 +166,40 @@ def uin_sec_pass(mods, sym_table):
         use_list = mod[USE]['use_list']
         prog = mod[PROG]
         prog_list = prog['prog_list']
-        # print('this is mod ' + str(c) + '\n')
-        c += 1
-        for usym, uaddr in use_list.items():
-            '''Resolve external addresses'''
-            is_sym_used_not_defined = False
-            old_sym_addr = prog_list[uaddr][WORD]
-            addr_cur = str(old_sym_addr)
 
-            prog_list[uaddr], new_sym_addr, sym_use_stat, is_sym_used_not_defined \
-                = check_sym_used_not_defined(prog_list[uaddr], usym, sym_table, sym_use_stat)
-
-            prog_list[uaddr][WORD] = p_ext_addr(old_sym_addr, int(new_sym_addr))
-            # print_list(prog_list)
-
-            # print('\naddrcur: ' + addr_cur)
-            prog_list[uaddr] = check_multiple_sym_usage(prog_list[uaddr])
-            
-            while addr_cur[-3:] != '777':
-                next_index = int(addr_cur[-3:])
-                # print('next idx is ' + str(next_index))
-                # print_list(prog_list)
-                next_addr = str(prog_list[next_index][WORD])
-                prog_list[next_index][WORD] = p_ext_addr(int(next_addr), int(new_sym_addr))
-                prog_list[next_index] = check_multiple_sym_usage(prog_list[next_index])
-                if is_sym_used_not_defined == True: 
-                    prog_list[next_index][PROG_ERR] = 'Error: ' + usym + \
-                        ' was used but not defined. It has been given the value 111.'
-                addr_cur = next_addr
+        if use_list:
+            use_list, prog_list, sym_table, sym_use_stat = \
+                process_use_list(use_list, prog_list, sym_table, sym_use_stat)
         
         prog_list, mmap = process_progs(prog_list, mmap, prog[BASE])
 
     mmap_out = format_mmap_out(mmap, sym_use_stat)
     return mmap_out
+
+def process_use_list(use_list, prog_list, sym_table, sym_use_stat):
+    for usym, uaddr in use_list.items():
+        '''Resolve external addresses'''
+        is_sym_used_not_defined = False
+        old_sym_addr = prog_list[uaddr][WORD]
+        addr_cur = str(old_sym_addr)
+
+        prog_list[uaddr], new_sym_addr, sym_use_stat, is_sym_used_not_defined \
+            = check_sym_used_not_defined(prog_list[uaddr], usym, sym_table, sym_use_stat)
+
+        prog_list[uaddr][WORD] = p_ext_addr(old_sym_addr, int(new_sym_addr))
+        prog_list[uaddr] = check_multiple_sym_usage(prog_list[uaddr])
+        
+        while addr_cur[-3:] != '777':
+            next_index = int(addr_cur[-3:])
+            next_addr = str(prog_list[next_index][WORD])
+            prog_list[next_index][WORD] = p_ext_addr(int(next_addr), int(new_sym_addr))
+            prog_list[next_index] = check_multiple_sym_usage(prog_list[next_index])
+            if is_sym_used_not_defined == True: 
+                prog_list[next_index][PROG_ERR] = 'Error: ' + usym + \
+                    ' was used but not defined. It has been given the value 111.'
+            addr_cur = next_addr
+
+        return use_list, prog_list, sym_table, sym_use_stat
 
 def process_progs(prog_list, mmap, base):
     for progpair in prog_list: 
