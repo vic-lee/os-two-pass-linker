@@ -151,7 +151,7 @@ def check_sym_used_not_defined(progpair, sym, sym_table, sym_use_stat):
         is_sym_used_not_defined = True
         new_sym_addr = '111'
         progpair[PROG_ERR] = 'Error: ' + sym + ' was used but not defined. It has been given the value 111.'
-    return progpair, new_sym_addr, sym_use_stat, is_sym_used_not_defined
+    return new_sym_addr, is_sym_used_not_defined
 
 def modify_word_last_three_digits(word, replacement):
     return int(str(word)[0]) * 1000 + replacement
@@ -181,7 +181,7 @@ def process_use_list(use_list, prog_list, sym_table, sym_use_stat):
         old_sym_addr = prog_list[uaddr][WORD]
         addr_cur = str(old_sym_addr)
 
-        prog_list[uaddr], new_sym_addr, sym_use_stat, is_sym_used_not_defined \
+        new_sym_addr, is_sym_used_not_defined \
             = check_sym_used_not_defined(prog_list[uaddr], usym, sym_table, sym_use_stat)
 
         prog_list[uaddr][WORD] = p_ext_addr(old_sym_addr, int(new_sym_addr))
