@@ -119,14 +119,6 @@ def format_mmap_out(mmap, sym_use_stat):
             mmap_str += 'Warning: ' + sym + ' was defined but never used.\n'
     return mmap_str
 
-def check_multiple_sym_usage(instruction_pair):
-    MULT_SYM_USAGE_ERR = 'Error: Multiple symbols used here; last one used'
-    if instruction_pair[k.PROG_SYM_USED_FLAG] == True: 
-        instruction_pair[k.PROG_ERR] = MULT_SYM_USAGE_ERR
-    else: 
-        instruction_pair[k.PROG_SYM_USED_FLAG] = True
-    return instruction_pair
-
 def is_symbol_defined(sym, sym_table):
     return True if sym in sym_table else False
 
@@ -156,36 +148,35 @@ def input_second_pass(mods, sym_table):
     return mmap_out
 
 def process_use_list(use_list, inst_list, sym_table, sym_use_stat):
+    MULT_SYM_USAGE_ERR = 'Error: Multiple symbols used here; last one used'
     for addr, sym_info in use_list.items():
         '''Resolve external addresses'''
         addr = int(addr)
         sym = sym_info[k.SYM_KEY]
         is_sym_multibly_used = sym_info[k.SYM_MULT_USE_FLAG]
 
-        is_sym_defined = is_symbol_defined(sym, sym_table)
-        old_sym_addr = inst_list[addr][k.WORD]
-        addr_cur = str(old_sym_addr)
+        old_addr = inst_list[addr][k.WORD]
+        addr_cur = str(old_addr)
 
         new_addr = None
+        is_sym_defined = is_symbol_defined(sym, sym_table)
         if is_sym_defined:
             new_addr = sym_table[sym][k.SYM_VAL]
             sym_use_stat[sym] = True
         else:
             inst_list[addr][k.PROG_ERR] = undefined_sym_err(sym)
-            new_addr = '111'
+            new_addr = 111
 
-        inst_list[addr][k.WORD] = process_ext_addr(old_sym_addr, int(new_addr))
+        inst_list[addr][k.WORD] = process_ext_addr(old_addr, new_addr)
         if is_sym_multibly_used: 
-            inst_list[addr][k.PROG_ERR] = 'Error: Multiple symbols used here; last one used'
-        inst_list[addr] = check_multiple_sym_usage(inst_list[addr])
+            inst_list[addr][k.PROG_ERR] = MULT_SYM_USAGE_ERR
         
         while addr_cur[-3:] != '777':
             next_index = int(addr_cur[-3:])
             next_addr = str(inst_list[next_index][k.WORD])
             inst_list[next_index][k.WORD] = process_ext_addr(int(next_addr), int(new_addr))
-            inst_list[next_index] = check_multiple_sym_usage(inst_list[next_index])
             if is_sym_multibly_used: 
-                inst_list[addr][k.PROG_ERR] = 'Error: Multiple symbols used here; last one used'
+                inst_list[addr][k.PROG_ERR] = MULT_SYM_USAGE_ERR
             if not is_sym_defined: 
                 inst_list[next_index][k.PROG_ERR] = undefined_sym_err(sym)
             addr_cur = next_addr
