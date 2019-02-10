@@ -136,8 +136,8 @@ def check_sym_used_not_defined(inst_pair, sym, sym_table, sym_use_stat):
         is_sym_used_not_defined = True
     else:
         sym_use_stat[sym] = True
-    
-    new_sym_addr = sym_table[sym][k.SYM_VAL] if is_sym_used_not_defined else '111'
+
+    new_sym_addr = '111' if is_sym_used_not_defined else sym_table[sym][k.SYM_VAL]
     return new_sym_addr, is_sym_used_not_defined
 
 def modify_word_last_three_digits(word, replacement):
