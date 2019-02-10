@@ -50,6 +50,7 @@ def parse_mod(mod_in, base, sym_table):
     mod_out[PROG], cur = parse_prog(mod_in, cur, base)
 
     base += mod_out[PROG]['prog_count']
+    return mod_out, mod_in[cur:], base, sym_table
 
 def parse_def(mod, cur, sym_table, base): 
     COUNT = 'def_count'
