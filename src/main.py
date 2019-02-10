@@ -63,31 +63,27 @@ def parse_mod(mod_in, base, sym_table):
 def parse_def(mod, cur, sym_table, base): 
     COUNT = 'def_count'
     LIST = 'def_list'
-    def_list = { COUNT: int(mod[cur]), LIST: {} }
+    def_count = int(mod[cur])
+    def_list = { COUNT: def_count, LIST: {} }
     cur += 1
-    # print('def count is: ' + str(def_list[COUNT]))
-    while cur < len(mod):
-        if len(def_list[LIST]) >= def_list[COUNT]:
-            break
+    for _ in range(def_count):
+        sym = mod[cur]
+        sym_val = mod[cur + 1]
+        def_list[LIST][sym] = int(sym_val)
+        if sym in sym_table: 
+            sym_table[sym][SYM_ERR] = "Error: This variable is multiply defined; last value used."
         else:
-            sym = mod[cur]
-            sym_val = mod[cur + 1]
-            def_list[LIST][sym] = int(sym_val)
-            if sym in sym_table: 
-                sym_table[sym][SYM_ERR] = "Error: This variable is multiply defined; last value used."
-            else:
-                sym_table[sym] = { SYM_VAL: None, SYM_ERR: "" }
-            sym_table[sym][SYM_VAL] = int(sym_val) + base
-            cur += 2
+            sym_table[sym] = { SYM_VAL: None, SYM_ERR: "" }
+        sym_table[sym][SYM_VAL] = int(sym_val) + base
+        cur += 2
     return def_list, cur, sym_table
 
 def parse_use(mod, cur): 
     COUNT = 'use_count'
     LIST = 'use_list'
-    use_list = { COUNT: int(mod[cur]), LIST: {} }
+    use_count = int(mod[cur])
+    use_list = { COUNT: use_count, LIST: {} }
     cur += 1
-    use_count = use_list[COUNT]
-    print('use count is ' + str(use_count))
     for _ in range(use_count):
         sym = mod[cur]
         sym_use_rel_addr = mod[cur + 1]
@@ -100,30 +96,25 @@ def parse_use(mod, cur):
                 SYM_MULT_USE_FLAG: False 
             }
         cur += 2
-    print(use_list)
     return use_list, cur
 
 def parse_prog(mod, cur, base): 
     COUNT = 'prog_count'
     LIST = 'prog_list'
-    prog_list = { COUNT: int(mod[cur]), BASE: base, LIST: [] }
+    prog_count = int(mod[cur])
+    prog_list = { COUNT: prog_count, BASE: base, LIST: [] }
     cur += 1
-    while cur < len(mod):
-        if len(prog_list[LIST]) >= prog_list[COUNT]: 
-            break
-        else: 
-            # print('type: ' + str(mod[cur]))
-            # print('word: ' + str(mod[cur+1]))
-            prog_list[LIST].append({ 
-                TYPE: mod[cur], 
-                WORD: int(mod[cur + 1]), 
-                PROG_SYM_USED_FLAG: False,
-                PROG_ERR: ""
-            })
-            cur += 2
+    for _ in range(prog_count):
+        prog_list[LIST].append({ 
+            TYPE: mod[cur], 
+            WORD: int(mod[cur + 1]), 
+            PROG_SYM_USED_FLAG: False,
+            PROG_ERR: ""
+        })
+        cur += 2
     return prog_list, cur
 
-def p_ext_addr(old_addr, new_addr):
+def process_ext_addr(old_addr, new_addr):
     first_digit = int(str(old_addr)[0])
     return (first_digit * 1000 + new_addr)
 
@@ -187,7 +178,6 @@ def process_use_list(use_list, prog_list, sym_table, sym_use_stat):
         '''Resolve external addresses'''
         uaddr = int(uaddr)
         usym = sym_info[SYM_KEY]
-        print("usym: {}, uaddr: {}".format(usym, uaddr))
         is_sym_multibly_used = sym_info[SYM_MULT_USE_FLAG]
 
         is_sym_used_not_defined = False
@@ -196,20 +186,17 @@ def process_use_list(use_list, prog_list, sym_table, sym_use_stat):
 
         new_sym_addr, is_sym_used_not_defined \
             = check_sym_used_not_defined(prog_list[uaddr], usym, sym_table, sym_use_stat)
-        
-        print('new addr for sym ' + usym + ' is: ' + str(new_sym_addr))
 
-        prog_list[uaddr][WORD] = p_ext_addr(old_sym_addr, int(new_sym_addr))
+        prog_list[uaddr][WORD] = process_ext_addr(old_sym_addr, int(new_sym_addr))
         if is_sym_multibly_used: 
             prog_list[uaddr][PROG_ERR] = 'Error: Multiple symbols used here; last one used'
         prog_list[uaddr] = check_multiple_sym_usage(prog_list[uaddr])
         
         while addr_cur[-3:] != '777':
             next_index = int(addr_cur[-3:])
-            print('usym: ' + usym + '; next index: ' + str(next_index))
             next_addr = str(prog_list[next_index][WORD])
-            prog_list[next_index][WORD] = p_ext_addr(int(next_addr), int(new_sym_addr))
-            print(prog_list)
+            prog_list[next_index][WORD] = process_ext_addr(int(next_addr), int(new_sym_addr))
+
             prog_list[next_index] = check_multiple_sym_usage(prog_list[next_index])
             if is_sym_multibly_used: 
                 prog_list[uaddr][PROG_ERR] = 'Error: Multiple symbols used here; last one used'
