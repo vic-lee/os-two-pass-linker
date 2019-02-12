@@ -25,6 +25,8 @@ def increment_cur(cur, incr, list):
 
 def linker_first_pass():
 
+    print("Plase paste your input below:")
+
     user_input = []
 
     first_line = read_next_line()
