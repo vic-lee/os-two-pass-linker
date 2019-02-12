@@ -2,4 +2,4 @@
 
 ## Getting started
 
-From the project directory, run `python3 main.py` to compile and run the program, then paste your input on the console. 
+From the project directory, run `python3 src/main.py < req/input-x`, where x (from 0 to 9) specifies the input file tested. 
