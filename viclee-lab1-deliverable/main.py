@@ -33,7 +33,7 @@ def read_next_line():
 def increment_cur(cur, incr, list):
     cur += incr
     next_line = None
-    print("cur:{}, lenlist:{}".format(cur, len(list)))
+    # print("cur:{}, lenlist:{}".format(cur, len(list)))
     if cur > (len(list) - 1):
         next_line = read_next_line()
         list += next_line
@@ -59,7 +59,7 @@ def linker_first_pass():
         mod = {k.DEF: {}, k.USE: {}, k.INSTRUCTIONS: {}}
 
         def_count = int(user_input[cur])
-        print("defcount:{}".format(def_count))
+        # print("defcount:{}".format(def_count))
         cur, user_input = increment_cur(cur, 1, user_input)
         def_list = {k.DEF_COUNT: def_count, k.DEF_LIST: {}}
         for _ in range(def_count):
@@ -67,7 +67,7 @@ def linker_first_pass():
             cur, user_input = increment_cur(cur, 1, user_input)
             sym_val = user_input[cur]
             cur, user_input = increment_cur(cur, 1, user_input)
-            print("mod:{}, sym:{}, symval:{}".format(mod_index, sym, sym_val))
+            # print("mod:{}, sym:{}, symval:{}".format(mod_index, sym, sym_val))
             def_list[k.DEF_LIST][sym] = int(sym_val)
 
             if sym in sym_table:
@@ -75,7 +75,7 @@ def linker_first_pass():
             else:
                 sym_table[sym] = {k.SYM_VAL: None, k.SYM_ERR: ""}
             sym_table[sym][k.SYM_VAL] = int(sym_val) + base_accum
-        print("mod:{}, deflist:{}".format(mod_index, str(def_list)))
+        # print("mod:{}, deflist:{}".format(mod_index, str(def_list)))
         mod[k.DEF] = def_list
         
         use_count = int(user_input[cur])
@@ -94,7 +94,7 @@ def linker_first_pass():
                     k.SYM_KEY: sym,
                     k.SYM_MULT_USE_FLAG: False
                 }
-        print("mod:{}, uselist:{}".format(mod_index, str(use_list)))
+        # print("mod:{}, uselist:{}".format(mod_index, str(use_list)))
         mod[k.USE] = use_list
 
         instruction_count = int(user_input[cur])
@@ -104,14 +104,13 @@ def linker_first_pass():
             k.BASE: base_accum,
             k.INSTRUCTION_LIST: []
         }
+        base_accum += instruction_count
         for inst_index in range(instruction_count):
             inst_type = user_input[cur]
             cur, user_input = increment_cur(cur, 1, user_input)
-            inst_word = user_input[cur]
-            # print("modindex:{}, modcount:{}, instidx:{}, instcount:{}".format(mod_index, mod_count, inst_index, instruction_count))
+            inst_word = int(user_input[cur])
             if (mod_index == (mod_count - 1)) and (inst_index == (instruction_count - 1)):
                 pass
-                # print("modindex:{}, modcount:{}, instidx:{}, instcount:{}".format(mod_index, mod_count, inst_index, instruction_count))
             else:
                 cur, user_input = increment_cur(cur, 1, user_input)
             instruction_list[k.INSTRUCTION_LIST].append({
@@ -120,12 +119,13 @@ def linker_first_pass():
                 k.PROG_SYM_USED_FLAG: False,
                 k.PROG_ERR: "",
             })
-        print("mod:{}, instlist:{}".format(mod_index, str(instruction_list)))        
+        # print("mod:{}, instlist:{}".format(mod_index, str(instruction_list)))        
         mod[k.INSTRUCTIONS] = instruction_list
         mods[k.MODS].append(mod)
 
     # print(mods)
-    pass
+    # print(sym_table)
+    return mods, sym_table
 
 
 def input_frist_pass(uin):
@@ -307,7 +307,7 @@ def process_instructions(inst_list, mmap, base):
         mmap.append(str(progpair[k.WORD]) + ' ' + progpair[k.PROG_ERR])
 
 
-def input_second_pass(mods, sym_table):
+def linker_second_pass(mods, sym_table):
     mmap = []
     sym_use_stat = {}
     for sym in sym_table:
@@ -324,12 +324,10 @@ def input_second_pass(mods, sym_table):
 
 
 def main():
-    linker_first_pass()
-    # uin = get_input()
-    # mods, sym_table = input_frist_pass(uin)
-    # print('\n' + format_sym_table_out(sym_table))
-    # mmap_out = input_second_pass(mods, sym_table)
-    # print(mmap_out)
+    mods, sym_table = linker_first_pass()
+    print('\n' + format_sym_table_out(sym_table))
+    mmap_out = linker_second_pass(mods, sym_table)
+    print(mmap_out)
 
 
 if __name__ == "__main__":
