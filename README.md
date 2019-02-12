@@ -64,5 +64,5 @@ Memory Map
                      
 Note: It is faster (less I/O) to do a one pass approach, but is harder since you need fix-up code whenever a use occurs in a module that precedes the module with the definition.
 
-## Note
+## Source
 This README file is adapted from Professor Yan Shvartzshnaider's [Operating System](https://cs.nyu.edu/courses/spring19/CSCI-UA.0202-002/) class, originally written by Professor Allan Gottlieb. 
