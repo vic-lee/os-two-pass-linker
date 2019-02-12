@@ -41,21 +41,8 @@ def linker_first_pass():
     for mod_index in range(mod_count):
         mod = {k.DEF: {}, k.USE: {}, k.INSTRUCTIONS: {}}
 
-        def_count = int(user_input[cur])
-        cur, user_input = increment_cur(cur, 1, user_input)
-        def_list = {k.DEF_COUNT: def_count, k.DEF_LIST: {}}
-        for _ in range(def_count):
-            sym = user_input[cur]
-            cur, user_input = increment_cur(cur, 1, user_input)
-            sym_val = user_input[cur]
-            cur, user_input = increment_cur(cur, 1, user_input)
-            def_list[k.DEF_LIST][sym] = int(sym_val)
-
-            if sym in sym_table:
-                sym_table[sym][k.SYM_ERR] = "Error: This variable is multiply defined; last value used."
-            else:
-                sym_table[sym] = {k.SYM_VAL: None, k.SYM_ERR: ""}
-            sym_table[sym][k.SYM_VAL] = int(sym_val) + base_accum
+        def_list, user_input, cur = parse_def(
+            user_input, cur, sym_table, base_accum)
         mod[k.DEF] = def_list
 
         use_list, user_input, cur = parse_use(user_input, cur)
@@ -67,6 +54,28 @@ def linker_first_pass():
         mods[k.MODS].append(mod)
 
     return mods, sym_table
+
+
+def parse_def(user_input, cur, sym_table, base_accum):
+    SYM_MULT_DEF_ERR = "Error: This variable is multiply defined; last value used."
+    def_count = int(user_input[cur])
+    cur, user_input = increment_cur(cur, 1, user_input)
+    def_list = {k.DEF_COUNT: def_count, k.DEF_LIST: {}}
+    for _ in range(def_count):
+        sym = user_input[cur]
+        cur, user_input = increment_cur(cur, 1, user_input)
+        sym_val = user_input[cur]
+        cur, user_input = increment_cur(cur, 1, user_input)
+        def_list[k.DEF_LIST][sym] = int(sym_val)
+
+        if sym in sym_table:
+            sym_table[sym][k.SYM_ERR] = SYM_MULT_DEF_ERR
+        else:
+            sym_table[sym] = {k.SYM_VAL: None, k.SYM_ERR: ""}
+
+        sym_table[sym][k.SYM_VAL] = int(sym_val) + base_accum
+    return def_list, user_input, cur
+
 
 def parse_use(user_input, cur):
     use_count = int(user_input[cur])
