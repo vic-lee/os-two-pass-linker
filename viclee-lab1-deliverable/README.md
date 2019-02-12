@@ -2,4 +2,4 @@
 
 ## Getting started
 
-From the project directory, run `python3 src/main.py < req/input-x`. x (from 0 to 9) specifies the input file tested. 
+From the project directory, run `python3 src/main.py < req/input-x`. x (1-9) specifies the input file tested. 
