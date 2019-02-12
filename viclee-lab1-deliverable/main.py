@@ -72,7 +72,8 @@ def parse_def(user_input, cur, sym_table, base_accum, mod_index):
         if sym in sym_table:
             sym_table[sym][k.SYM_ERR] = SYM_MULT_DEF_ERR
         else:
-            sym_table[sym] = {k.SYM_VAL: None, k.SYM_DEF_MOD: None, k.SYM_ERR: ""}
+            sym_table[sym] = {k.SYM_VAL: None,
+                              k.SYM_DEF_MOD: None, k.SYM_ERR: ""}
 
         sym_table[sym][k.SYM_VAL] = int(sym_val) + base_accum
         sym_table[sym][k.SYM_DEF_MOD] = mod_index
@@ -138,14 +139,17 @@ def format_sym_table_out(syms):
     return syms_out
 
 
-def format_mmap_out(mmap, sym_use_stat):
+def format_mmap_out(mmap, sym_use_stat, sym_table):
     mmap_str = "Memory Map\n"
     for index, item in enumerate(mmap):
         mmap_str += "{}:\t{}\n".format(str(index), item)
     mmap_str += '\n'
     for sym in sym_use_stat:
         if sym_use_stat[sym] == False:
-            mmap_str += 'Warning: ' + sym + ' was defined but never used.\n'
+            sym_def_loc = sym_table[sym][k.SYM_DEF_MOD]
+            warning = "Warning: {} was defined in {} but never used.\n".format(
+                sym, sym_def_loc)
+            mmap_str += warning
     return mmap_str
 
 
@@ -238,7 +242,7 @@ def linker_second_pass(mods, sym_table):
         if use_list:
             process_use_list(use_list, inst_list, sym_table, sym_use_stat)
         process_instructions(inst_list, mmap, prog[k.BASE])
-    mmap_out = format_mmap_out(mmap, sym_use_stat)
+    mmap_out = format_mmap_out(mmap, sym_use_stat, sym_table)
     return mmap_out
 
 
