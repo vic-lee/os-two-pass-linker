@@ -16,7 +16,6 @@ def read_next_line():
 def increment_cur(cur, incr, list):
     cur += incr
     next_line = None
-    # print("cur:{}, lenlist:{}".format(cur, len(list)))
     if cur > (len(list) - 1):
         next_line = read_next_line()
         list += next_line
@@ -231,7 +230,7 @@ def linker_second_pass(mods, sym_table):
     sym_use_stat = {}
     for sym in sym_table:
         sym_use_stat[sym] = False
-    for mod_num, mod in enumerate(mods[k.MODS]):
+    for mod in mods[k.MODS]:
         use_list = mod[k.USE][k.USE_LIST]
         prog = mod[k.INSTRUCTIONS]
         inst_list = prog[k.INSTRUCTION_LIST]
