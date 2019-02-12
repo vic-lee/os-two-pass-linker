@@ -27,3 +27,6 @@ SYM_KEY = "sym"
 SYM_VAL = "symbol_value"
 SYM_ERR = "symbol_error_msg"
 SYM_MULT_USE_FLAG = "symbol_multibly_used"
+
+SYM_USAGE = 'sym_usage'
+SYM_MOD = 'sym_module'

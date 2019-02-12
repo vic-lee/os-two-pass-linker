@@ -1,11 +1,9 @@
 import mod_keys as k
+from sys import stdin
 
 MACHINE_SIZE = 300
 MAX_LEGAL_VAL = 299
 
-def print_list(l):
-    for item in l: 
-        print(item)
 
 def get_input():
     print("""
@@ -23,22 +21,126 @@ def get_input():
     user_input = " ".join(user_input).split()
     return user_input
 
-def input_frist_pass(uin): 
-    mods = { k.MOD_COUNT: int(uin[0]), k.MODS: [] }
+
+def read_next_line():
+    line = ""
+    while True:
+        line = input()
+        if line:
+            return line.split()
+
+
+def increment_cur(cur, incr, list):
+    cur += incr
+    next_line = None
+    print("cur:{}, lenlist:{}".format(cur, len(list)))
+    if cur > (len(list) - 1):
+        next_line = read_next_line()
+        list += next_line
+    return cur, list
+
+
+def linker_first_pass():
+
+    user_input = []
+
+    first_line = read_next_line()
+    user_input += first_line
+
+    cur = 0
+    mod_count = int(user_input[cur])
+    cur, user_input = increment_cur(cur, 1, user_input)
+
+    sym_table = {}
+    base_accum = 0
+
+    mods = {k.MOD_COUNT: int(mod_count), k.MODS: []}
+    for mod_index in range(mod_count):
+        mod = {k.DEF: {}, k.USE: {}, k.INSTRUCTIONS: {}}
+
+        def_count = int(user_input[cur])
+        print("defcount:{}".format(def_count))
+        cur, user_input = increment_cur(cur, 1, user_input)
+        def_list = {k.DEF_COUNT: def_count, k.DEF_LIST: {}}
+        for _ in range(def_count):
+            sym = user_input[cur]
+            cur, user_input = increment_cur(cur, 1, user_input)
+            sym_val = user_input[cur]
+            cur, user_input = increment_cur(cur, 1, user_input)
+            print("mod:{}, sym:{}, symval:{}".format(mod_index, sym, sym_val))
+            def_list[k.DEF_LIST][sym] = int(sym_val)
+
+            if sym in sym_table:
+                sym_table[sym][k.SYM_ERR] = "Error: This variable is multiply defined; last value used."
+            else:
+                sym_table[sym] = {k.SYM_VAL: None, k.SYM_ERR: ""}
+            sym_table[sym][k.SYM_VAL] = int(sym_val) + base_accum
+        print("mod:{}, deflist:{}".format(mod_index, str(def_list)))
+        mod[k.DEF] = def_list
+        
+        use_count = int(user_input[cur])
+        cur, user_input = increment_cur(cur, 1, user_input)
+        use_list = {k.USE_COUNT: use_count, k.USE_LIST: {}}
+        for _ in range(use_count):
+            sym = user_input[cur]
+            cur, user_input = increment_cur(cur, 1, user_input)
+            sym_use_rel_addr = user_input[cur]
+            cur, user_input = increment_cur(cur, 1, user_input)
+            if sym_use_rel_addr in use_list[k.USE_LIST]:
+                use_list[k.USE_LIST][sym_use_rel_addr][k.SYM_KEY] = sym
+                use_list[k.USE_LIST][sym_use_rel_addr][k.SYM_MULT_USE_FLAG] = True
+            else: 
+                use_list[k.USE_LIST][sym_use_rel_addr] = {
+                    k.SYM_KEY: sym,
+                    k.SYM_MULT_USE_FLAG: False
+                }
+        print("mod:{}, uselist:{}".format(mod_index, str(use_list)))
+        mod[k.USE] = use_list
+
+        instruction_count = int(user_input[cur])
+        cur, user_input = increment_cur(cur, 1, user_input)
+        instruction_list = {
+            k.INSTRUCTION_COUNT: instruction_count,
+            k.BASE: base_accum,
+            k.INSTRUCTION_LIST: []
+        }
+        for inst_index in range(instruction_count):
+            inst_type = user_input[cur]
+            cur, user_input = increment_cur(cur, 1, user_input)
+            inst_word = user_input[cur]
+            # print("modindex:{}, modcount:{}, instidx:{}, instcount:{}".format(mod_index, mod_count, inst_index, instruction_count))
+            if (mod_index == (mod_count - 1)) and (inst_index == (instruction_count - 1)):
+                pass
+                # print("modindex:{}, modcount:{}, instidx:{}, instcount:{}".format(mod_index, mod_count, inst_index, instruction_count))
+            else:
+                cur, user_input = increment_cur(cur, 1, user_input)
+            instruction_list[k.INSTRUCTION_LIST].append({
+                k.TYPE: inst_type,
+                k.WORD: inst_word,
+                k.PROG_SYM_USED_FLAG: False,
+                k.PROG_ERR: "",
+            })
+        print("mod:{}, instlist:{}".format(mod_index, str(instruction_list)))        
+        mod[k.INSTRUCTIONS] = instruction_list
+        mods[k.MODS].append(mod)
+
+    # print(mods)
+    pass
+
+
+def input_frist_pass(uin):
+    mods = {k.MOD_COUNT: int(uin[0]), k.MODS: []}
     buffer = uin[1:]
     base_accum = 0
     syms = {}
-    for _ in range(mods[k.MOD_COUNT]): 
+    for _ in range(mods[k.MOD_COUNT]):
         mod, buffer, base_accum, syms = parse_mod(buffer, base_accum, syms)
         mods[k.MODS].append(mod)
     return mods, syms
 
-def parse_mod(mod_in, base, sym_table): 
-    '''
-    Input: a string containing a module
-    Return: the remaining string after a module is parsed and removed from str.  
-    '''
-    mod_out = { k.DEF: {}, k.USE: {}, k.INSTRUCTIONS: {} }
+
+def parse_mod(mod_in, base, sym_table):
+    mod_out = {k.DEF: {}, k.USE: {}, k.INSTRUCTIONS: {}}
     cur = 0
 
     mod_out[k.DEF], cur, sym_table = parse_def(mod_in, cur, sym_table, base)
@@ -48,25 +150,27 @@ def parse_mod(mod_in, base, sym_table):
     base += mod_out[k.INSTRUCTIONS][k.INSTRUCTION_COUNT]
     return mod_out, mod_in[cur:], base, sym_table
 
-def parse_def(mod, cur, sym_table, base): 
+
+def parse_def(mod, cur, sym_table, base):
     def_count = int(mod[cur])
-    def_list = { k.DEF_COUNT: def_count, k.DEF_LIST: {} }
+    def_list = {k.DEF_COUNT: def_count, k.DEF_LIST: {}}
     cur += 1
     for _ in range(def_count):
         sym = mod[cur]
         sym_val = mod[cur + 1]
         def_list[k.DEF_LIST][sym] = int(sym_val)
-        if sym in sym_table: 
+        if sym in sym_table:
             sym_table[sym][k.SYM_ERR] = "Error: This variable is multiply defined; last value used."
         else:
-            sym_table[sym] = { k.SYM_VAL: None, k.SYM_ERR: "" }
+            sym_table[sym] = {k.SYM_VAL: None, k.SYM_ERR: ""}
         sym_table[sym][k.SYM_VAL] = int(sym_val) + base
         cur += 2
     return def_list, cur, sym_table
 
-def parse_use(mod, cur): 
+
+def parse_use(mod, cur):
     use_count = int(mod[cur])
-    use_list = { k.USE_COUNT: use_count, k.USE_LIST: {} }
+    use_list = {k.USE_COUNT: use_count, k.USE_LIST: {}}
     cur += 1
     for _ in range(use_count):
         sym = mod[cur]
@@ -74,57 +178,67 @@ def parse_use(mod, cur):
         if sym_use_rel_addr in use_list[k.USE_LIST]:
             use_list[k.USE_LIST][sym_use_rel_addr][k.SYM_KEY] = sym
             use_list[k.USE_LIST][sym_use_rel_addr][k.SYM_MULT_USE_FLAG] = True
-        else: 
-            use_list[k.USE_LIST][sym_use_rel_addr] = { 
-                k.SYM_KEY: sym, 
-                k.SYM_MULT_USE_FLAG: False 
+        else:
+            use_list[k.USE_LIST][sym_use_rel_addr] = {
+                k.SYM_KEY: sym,
+                k.SYM_MULT_USE_FLAG: False
             }
         cur += 2
     return use_list, cur
 
-def parse_instructions(mod, cur, base): 
+
+def parse_instructions(mod, cur, base):
     instruction_count = int(mod[cur])
-    instruction_list = { 
-        k.INSTRUCTION_COUNT: instruction_count, 
-        k.BASE: base, 
-        k.INSTRUCTION_LIST: [] }
+    instruction_list = {
+        k.INSTRUCTION_COUNT: instruction_count,
+        k.BASE: base,
+        k.INSTRUCTION_LIST: []
+    }
     cur += 1
     for _ in range(instruction_count):
-        instruction_list[k.INSTRUCTION_LIST].append({ 
-            k.TYPE: mod[cur], 
-            k.WORD: int(mod[cur + 1]), 
+        instruction_list[k.INSTRUCTION_LIST].append({
+            k.TYPE: mod[cur],
+            k.WORD: int(mod[cur + 1]),
             k.PROG_SYM_USED_FLAG: False,
             k.PROG_ERR: ""
         })
         cur += 2
     return instruction_list, cur
 
+
 def process_ext_addr(old_addr, new_addr):
     first_digit = int(str(old_addr)[0])
     return (first_digit * 1000 + new_addr)
 
+
 def format_sym_table_out(syms):
     syms_out = "Symbol Table\n"
     for sym, sym_info in syms.items():
-        syms_out += "{}={} {}\n".format(sym, sym_info[k.SYM_VAL], sym_info[k.SYM_ERR])
+        syms_out += "{}={} {}\n".format(sym,
+                                        sym_info[k.SYM_VAL], sym_info[k.SYM_ERR])
     return syms_out
+
 
 def format_mmap_out(mmap, sym_use_stat):
     mmap_str = "Memory Map\n"
     for index, item in enumerate(mmap):
         mmap_str += "{}:\t{}\n".format(str(index), item)
     mmap_str += '\n'
-    for sym in sym_use_stat: 
-        if sym_use_stat[sym] == False: 
+    for sym in sym_use_stat:
+        if sym_use_stat[sym] == False:
             mmap_str += 'Warning: ' + sym + ' was defined but never used.\n'
     return mmap_str
+
 
 def is_symbol_defined(sym, sym_table):
     return True if sym in sym_table else False
 
-def undefined_sym_err(sym): 
-    USED_NOT_DEFINED_ERR = 'Error: ' + sym + ' was used but not defined. It has been given the value 111.'
+
+def undefined_sym_err(sym):
+    USED_NOT_DEFINED_ERR = 'Error: ' + sym + \
+        ' was used but not defined. It has been given the value 111.'
     return USED_NOT_DEFINED_ERR
+
 
 def resolve_new_addr(is_sym_defined, sym, inst_pair, sym_table, sym_use_stat):
     new_addr = None
@@ -138,8 +252,10 @@ def resolve_new_addr(is_sym_defined, sym, inst_pair, sym_table, sym_use_stat):
     inst_pair[k.WORD] = process_ext_addr(old_addr, new_addr)
     return inst_pair
 
+
 def modify_word_last_three_digits(word, replacement):
     return int(str(word)[0]) * 1000 + replacement
+
 
 def process_use_list(use_list, inst_list, sym_table, sym_use_stat):
     MULT_SYM_USAGE_ERR = 'Error: Multiple symbols used here; last one used'
@@ -148,69 +264,73 @@ def process_use_list(use_list, inst_list, sym_table, sym_use_stat):
         sym = sym_info[k.SYM_KEY]
 
         is_sym_multibly_used = sym_info[k.SYM_MULT_USE_FLAG]
-        if is_sym_multibly_used: 
+        if is_sym_multibly_used:
             inst_list[addr][k.PROG_ERR] = MULT_SYM_USAGE_ERR
 
         old_addr = inst_list[addr][k.WORD]
         addr_cur = str(old_addr)
-        
-        is_sym_defined = is_symbol_defined(sym, sym_table)
 
-        inst_list[addr] = resolve_new_addr(\
+        is_sym_defined = is_symbol_defined(sym, sym_table)
+        inst_list[addr] = resolve_new_addr(
             is_sym_defined, sym, inst_list[addr], sym_table, sym_use_stat)
 
         new_addr = str(inst_list[addr][k.WORD])[-3:]
-        
+
         while addr_cur[-3:] != '777':
             next_index = int(addr_cur[-3:])
             next_addr = str(inst_list[next_index][k.WORD])
-            inst_list[next_index][k.WORD] = process_ext_addr(int(next_addr), int(new_addr))
-            if is_sym_multibly_used: 
+            inst_list[next_index][k.WORD] = process_ext_addr(
+                int(next_addr), int(new_addr))
+            if is_sym_multibly_used:
                 inst_list[addr][k.PROG_ERR] = MULT_SYM_USAGE_ERR
-            if not is_sym_defined: 
+            if not is_sym_defined:
                 inst_list[next_index][k.PROG_ERR] = undefined_sym_err(sym)
             addr_cur = next_addr
+
 
 def process_instructions(inst_list, mmap, base):
     EXCEED_MOD_SIZE_ERR = 'Error: Type R address exceeds module size; 0 (relative) used'
     EXCEED_MACHINE_SIZE_ERR = 'Error: A type address exceeds machine size; max legal value used'
-    for progpair in inst_list: 
-        if progpair[k.TYPE] == 'R': 
+    for progpair in inst_list:
+        if progpair[k.TYPE] == 'R':
             if int(str(progpair[k.WORD])[-3:]) >= len(inst_list):
                 progpair[k.PROG_ERR] = EXCEED_MOD_SIZE_ERR
-                progpair[k.WORD] = modify_word_last_three_digits(progpair[k.WORD], 0)
+                progpair[k.WORD] = modify_word_last_three_digits(
+                    progpair[k.WORD], 0)
             progpair[k.WORD] += base
         elif progpair[k.TYPE] == 'A':
-            if int(str(progpair[k.WORD])[-3:]) >= MACHINE_SIZE: 
+            if int(str(progpair[k.WORD])[-3:]) >= MACHINE_SIZE:
                 progpair[k.PROG_ERR] = EXCEED_MACHINE_SIZE_ERR
-                progpair[k.WORD] = modify_word_last_three_digits(progpair[k.WORD], MAX_LEGAL_VAL)
+                progpair[k.WORD] = modify_word_last_three_digits(
+                    progpair[k.WORD], MAX_LEGAL_VAL)
 
         mmap.append(str(progpair[k.WORD]) + ' ' + progpair[k.PROG_ERR])
 
-def input_second_pass(mods, sym_table): 
+
+def input_second_pass(mods, sym_table):
     mmap = []
     sym_use_stat = {}
-    for sym in sym_table: 
+    for sym in sym_table:
         sym_use_stat[sym] = False
-    for mod in mods[k.MODS]:
+    for mod_num, mod in enumerate(mods[k.MODS]):
         use_list = mod[k.USE][k.USE_LIST]
         prog = mod[k.INSTRUCTIONS]
         inst_list = prog[k.INSTRUCTION_LIST]
-
         if use_list:
             process_use_list(use_list, inst_list, sym_table, sym_use_stat)
-        
         process_instructions(inst_list, mmap, prog[k.BASE])
-
     mmap_out = format_mmap_out(mmap, sym_use_stat)
     return mmap_out
 
+
 def main():
-    uin = get_input()
-    mods, sym_table = input_frist_pass(uin)
-    print('\n' + format_sym_table_out(sym_table))
-    mmap_out = input_second_pass(mods, sym_table)
-    print(mmap_out)
-    
+    linker_first_pass()
+    # uin = get_input()
+    # mods, sym_table = input_frist_pass(uin)
+    # print('\n' + format_sym_table_out(sym_table))
+    # mmap_out = input_second_pass(mods, sym_table)
+    # print(mmap_out)
+
+
 if __name__ == "__main__":
     main()
