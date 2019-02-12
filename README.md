@@ -10,7 +10,8 @@ Each object module contains three parts, a definition list, a use list, and the 
 
 The definition list consists of a count N followed by N definitions. Each definition is a pair (sym, loc) signifying that sym is defined at relative address loc.
 
-The use list consists of a count N followed by N uses. Each use is again a pair (sym, loc), but this time signifying that sym is used in the linked list started at loc. The address in loc points to the next use of sym. An address of 777 is the sentinel ending the list. :
+The use list consists of a count N followed by N uses. Each use is again a pair (sym, loc), but this time signifying that sym is used in the linked list started at loc. The address in loc points to the next use of sym. An address of 777 is the sentinel ending the list. 
+
 The program text consists of a count N followed by N pairs (type, word), where word is a 4-digit instruction as described above and type is a single character indicating if the address in the word is Immediate, Absolute, Relative, or External.
 
 The actions taken by the linker depend on the type of the address, as we now illustrate. Consider the first input set from the lab.
