@@ -58,30 +58,34 @@ def linker_first_pass():
             sym_table[sym][k.SYM_VAL] = int(sym_val) + base_accum
         mod[k.DEF] = def_list
 
-        use_count = int(user_input[cur])
-        cur, user_input = increment_cur(cur, 1, user_input)
-        use_list = {k.USE_COUNT: use_count, k.USE_LIST: {}}
-        for _ in range(use_count):
-            sym = user_input[cur]
-            cur, user_input = increment_cur(cur, 1, user_input)
-            sym_use_rel_addr = user_input[cur]
-            cur, user_input = increment_cur(cur, 1, user_input)
-            if sym_use_rel_addr in use_list[k.USE_LIST]:
-                use_list[k.USE_LIST][sym_use_rel_addr][k.SYM_KEY] = sym
-                use_list[k.USE_LIST][sym_use_rel_addr][k.SYM_MULT_USE_FLAG] = True
-            else:
-                use_list[k.USE_LIST][sym_use_rel_addr] = {
-                    k.SYM_KEY: sym,
-                    k.SYM_MULT_USE_FLAG: False
-                }
+        use_list, user_input, cur = parse_use(user_input, cur)
         mod[k.USE] = use_list
 
-        instruction_list, cur, base_accum, user_input = parse_instructions(
+        instruction_list, user_input, cur, base_accum = parse_instructions(
             user_input, cur, base_accum, mod_index, mod_count)
         mod[k.INSTRUCTIONS] = instruction_list
         mods[k.MODS].append(mod)
 
     return mods, sym_table
+
+def parse_use(user_input, cur):
+    use_count = int(user_input[cur])
+    cur, user_input = increment_cur(cur, 1, user_input)
+    use_list = {k.USE_COUNT: use_count, k.USE_LIST: {}}
+    for _ in range(use_count):
+        sym = user_input[cur]
+        cur, user_input = increment_cur(cur, 1, user_input)
+        sym_use_rel_addr = user_input[cur]
+        cur, user_input = increment_cur(cur, 1, user_input)
+        if sym_use_rel_addr in use_list[k.USE_LIST]:
+            use_list[k.USE_LIST][sym_use_rel_addr][k.SYM_KEY] = sym
+            use_list[k.USE_LIST][sym_use_rel_addr][k.SYM_MULT_USE_FLAG] = True
+        else:
+            use_list[k.USE_LIST][sym_use_rel_addr] = {
+                k.SYM_KEY: sym,
+                k.SYM_MULT_USE_FLAG: False
+            }
+    return use_list, user_input, cur
 
 
 def parse_instructions(user_input, cur, base_accum, mod_index, mod_count):
@@ -107,7 +111,7 @@ def parse_instructions(user_input, cur, base_accum, mod_index, mod_count):
             k.PROG_SYM_USED_FLAG: False,
             k.PROG_ERR: "",
         })
-    return instruction_list, cur, base_accum, user_input
+    return instruction_list, user_input, cur, base_accum
 
 
 def process_ext_addr(old_addr, new_addr):
