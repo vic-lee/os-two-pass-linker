@@ -43,7 +43,7 @@ def linker_first_pass():
         mod = {k.DEF: {}, k.USE: {}, k.INSTRUCTIONS: {}}
 
         def_list, user_input, cur = parse_def(
-            user_input, cur, sym_table, base_accum)
+            user_input, cur, sym_table, base_accum, mod_index)
         mod[k.DEF] = def_list
 
         use_list, user_input, cur = parse_use(user_input, cur)
@@ -57,7 +57,7 @@ def linker_first_pass():
     return mods, sym_table
 
 
-def parse_def(user_input, cur, sym_table, base_accum):
+def parse_def(user_input, cur, sym_table, base_accum, mod_index):
     SYM_MULT_DEF_ERR = "Error: This variable is multiply defined; last value used."
     def_count = int(user_input[cur])
     cur, user_input = increment_cur(cur, 1, user_input)
@@ -72,9 +72,10 @@ def parse_def(user_input, cur, sym_table, base_accum):
         if sym in sym_table:
             sym_table[sym][k.SYM_ERR] = SYM_MULT_DEF_ERR
         else:
-            sym_table[sym] = {k.SYM_VAL: None, k.SYM_ERR: ""}
+            sym_table[sym] = {k.SYM_VAL: None, k.SYM_DEF_MOD: None, k.SYM_ERR: ""}
 
         sym_table[sym][k.SYM_VAL] = int(sym_val) + base_accum
+        sym_table[sym][k.SYM_DEF_MOD] = mod_index
     return def_list, user_input, cur
 
 
@@ -243,6 +244,7 @@ def linker_second_pass(mods, sym_table):
 
 def main():
     mods, sym_table = linker_first_pass()
+    print(sym_table)
     print('\n' + format_sym_table_out(sym_table))
     mmap_out = linker_second_pass(mods, sym_table)
     print(mmap_out)

@@ -26,6 +26,7 @@ PROG_SYM_USED_FLAG = "used_flag"
 SYM_KEY = "sym"
 SYM_VAL = "symbol_value"
 SYM_ERR = "symbol_error_msg"
+SYM_DEF_MOD = "symbol_definition_module"
 SYM_MULT_USE_FLAG = "symbol_multibly_used"
 
 SYM_USAGE = 'sym_usage'
