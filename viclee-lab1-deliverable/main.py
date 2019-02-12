@@ -73,7 +73,7 @@ def parse_def(user_input, cur, sym_table, base_accum, mod_index):
             sym_table[sym][k.SYM_ERR] = SYM_MULT_DEF_ERR
         else:
             sym_table[sym] = {k.SYM_VAL: None,
-                              k.SYM_DEF_MOD: None, k.SYM_ERR: ""}
+                              k.SYM_DEF_MOD: None, k.SYM_ERR: None}
 
         sym_table[sym][k.SYM_VAL] = int(sym_val) + base_accum
         sym_table[sym][k.SYM_DEF_MOD] = mod_index
@@ -248,7 +248,6 @@ def linker_second_pass(mods, sym_table):
 
 def main():
     mods, sym_table = linker_first_pass()
-    print(sym_table)
     print('\n' + format_sym_table_out(sym_table))
     mmap_out = linker_second_pass(mods, sym_table)
     print(mmap_out)
